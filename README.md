@@ -1,1 +1,1 @@
-# Some sample files for a small go tutorial
+# Some sample files for a go tutorial for Raspberry

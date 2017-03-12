@@ -23,6 +23,7 @@ const (
 
 func main() {
 
+	// list of GPIOs to use
 	pins := []string{"gpio4", "gpio17", "gpio18", "gpio22", "gpio23", "gpio24", "gpio25", "gpio27"}
 
 	var (
@@ -36,7 +37,7 @@ func main() {
 	// endless loop
 	for {
 
-		// loop thorugh all GPIOs
+		// loop through all GPIOs
 		for _, pin := range pins {
 
 			// get a pin by name. You could also just use the logical pin number, but this is

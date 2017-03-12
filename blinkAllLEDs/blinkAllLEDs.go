@@ -2,8 +2,6 @@ package main
 
 // Samples used in a small go tutorial
 //
-// Turns on and off all GPIOs in sequence
-//
 // Modified sample blink program from https://github.com/mrmorphic/hwio/tree/master/examples
 // For more samples see https://github.com/framps/golang_tutorial
 //
@@ -25,7 +23,6 @@ const (
 
 func main() {
 
-	// catch ctrlc and cleanup
 	c := make(chan os.Signal, 2)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 	go func() {
@@ -35,40 +32,42 @@ func main() {
 	}()
 
 	// list of GPIOs to use
-	pins := []string{"gpio4", "gpio17", "gpio18", "gpio22", "gpio23", "gpio24", "gpio25", "gpio27"}
+	gpioNames := []string{"gpio4", "gpio17", "gpio18", "gpio22", "gpio23", "gpio24", "gpio25", "gpio27"}
+	// list of pins
+	gpioPins := make([]hwio.Pin, len(gpioNames))
 
 	var (
-		ledPin hwio.Pin
-		err    error
+		err error
 	)
+
+	// loop through all GPIOs and get their pins
+	for i, gpioName := range gpioNames {
+
+		// get a pin by name. You could also just use the logical pin number, but this is
+		// more readable. On BeagleBone, USR0 is an on-board LED.
+		if gpioPins[i], err = hwio.GetPin(gpioName); err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+
+		// Set the mode of the pin to output. This will return an error if, for example,
+		// we were trying to set an analog input to an output.
+		if err = hwio.PinMode(gpioPins[i], hwio.OUTPUT); err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+	}
 
 	// endless loop
 	for {
-
-		// loop through all GPIOs
-		for _, pin := range pins {
-
-			// get a pin by name. You could also just use the logical pin number, but this is
-			// more readable. On BeagleBone, USR0 is an on-board LED.
-			if ledPin, err = hwio.GetPin(pin); err != nil {
-				fmt.Println(err)
-				os.Exit(1)
-			}
-
-			// Set the mode of the pin to output. This will return an error if, for example,
-			// we were trying to set an analog input to an output.
-			if err = hwio.PinMode(ledPin, hwio.OUTPUT); err != nil {
-				fmt.Println(err)
-				os.Exit(1)
-			}
+		for i := range gpioPins {
 
 			for j := 0; j < blinkCount; j++ {
-				hwio.DigitalWrite(ledPin, hwio.HIGH)
+				hwio.DigitalWrite(gpioPins[i], hwio.HIGH)
 				hwio.Delay(sleepTime)
-				hwio.DigitalWrite(ledPin, hwio.LOW)
+				hwio.DigitalWrite(gpioPins[i], hwio.LOW)
 				hwio.Delay(sleepTime)
 			}
-			hwio.ClosePin(ledPin)
 		}
 	}
 }

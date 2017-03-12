@@ -1,3 +1,5 @@
+package main
+
 // Samples used in a small go tutorial
 //
 // Turns on and off all GPIOs in sequence
@@ -6,8 +8,6 @@
 // For more samples see https://github.com/framps/golang_tutorial
 //
 // Copyright (C) 2017 framp at linux-tips-and-tricks dot depackage main
-
-package main
 
 import (
 	"fmt"

@@ -12,6 +12,8 @@ package main
 import (
 	"fmt"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/mrmorphic/hwio"
 )
@@ -23,6 +25,14 @@ const (
 
 func main() {
 
+	c := make(chan os.Signal, 2)
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+	go func() {
+		<-c
+		hwio.CloseAll()
+		os.Exit(1)
+	}()
+
 	// list of GPIOs to use
 	pins := []string{"gpio4", "gpio17", "gpio18", "gpio22", "gpio23", "gpio24", "gpio25", "gpio27"}
 
@@ -30,9 +40,6 @@ func main() {
 		ledPin hwio.Pin
 		err    error
 	)
-
-	// close everythin at pgm end
-	defer hwio.CloseAll()
 
 	// endless loop
 	for {

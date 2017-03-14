@@ -39,7 +39,7 @@ func main() {
 		fmt.Printf("Guesses: %d - Low: %d - High: %d -> Your guess: ", guesses, low, high) // prompt for input
 		text, _ := reader.ReadString('\n')                                                 // returns two values, _ is an unnamed variable thus the error returned is ignored
 
-		if actualValue, err = strconv.Atoi(strings.TrimSpace(text)); err != nil { // if statement
+		if actualValue, err = strconv.Atoi(strings.TrimSpace(text)); err != nil { // if statement, atoi returns two results - second result is used to notify about errors
 			fmt.Printf("Invalid number %s entered\n", text)
 			continue // continue loop
 		}

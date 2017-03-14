@@ -8,6 +8,7 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -28,7 +29,7 @@ type Payload struct {
 	Status string `json:"status"`
 }
 
-const apiURL = "http://maps.googleapis.com/maps/api/geocode/json?address="
+const apiURL = "http://maps.googleapis.com/maps/api/geocode/json?address=%s,%s,%d"
 
 // helperfunction for errors
 func abortIfError(err error) {
@@ -40,8 +41,17 @@ func abortIfError(err error) {
 
 func main() {
 
+	city := flag.String("city", "Berlin", "City")
+	street := flag.String("street", "Bahnhofstrasse", "Street")
+	number := flag.Int("number", 1, "Number")
+
+	flag.Parse()
+
+	completeAPIURL := fmt.Sprintf(apiURL, *city, *street, *number)
+
+	fmt.Printf("Retrieving geolocation information for %s, %s %d\n", *city, *street, *number)
 	// establish connection
-	resp, err := http.Get(apiURL)
+	resp, err := http.Get(completeAPIURL)
 	defer resp.Body.Close()
 	abortIfError(err)
 
@@ -54,5 +64,5 @@ func main() {
 	err = json.Unmarshal(body, payload)
 	abortIfError(err)
 
-	fmt.Printf("Status: %v - Long: %v - Lat: %v\n", payload.Status, payload.Results[0].Geometry.Location.Logitude, payload.Results[0].Geometry.Location.Lattitude)
+	fmt.Printf("Status: %v - Longitude: %v - Latitude: %v\n", payload.Status, payload.Results[0].Geometry.Location.Logitude, payload.Results[0].Geometry.Location.Lattitude)
 }

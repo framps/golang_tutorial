@@ -52,7 +52,7 @@ func main() {
 		guesses++ // increment operator
 
 		if actualValue == guessValue {
-			fmt.Printf("Congratulations: Number %d guessed in %d guesses\n", guessValue, guesses)
+			fmt.Printf("Congratulations: Number %d guessed with %d guesses\n", guessValue, guesses)
 			break
 		}
 

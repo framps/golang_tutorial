@@ -7,10 +7,9 @@ package fibonacci
 
 import (
 	"testing"
-
-	"github.com/framps/golang_tutorial/functions.go/fibonacci"
 )
 
+// table drivern test - usual test pattern in go
 var fibonacciTests = []struct {
 	input    int // function input
 	expected int // expected result
@@ -22,13 +21,14 @@ var fibonacciTests = []struct {
 	{5, 5},
 	{6, 8},
 	{7, 13},
+	{8, 20}, // should be 21 instead of 20, used to force e test error to show up
 }
 
-// TestFibonacci -
+// TestFibonacci - run it with go test ./fibonacci
 func TestFibonacci(t *testing.T) {
 	for _, tt := range fibonacciTests {
 		t.Logf("Calculating Fibonacci number for %d", tt.input)
-		actual, _ := fibonacci.Fibonacci(tt.input)
+		actual, _ := Fibonacci(tt.input)
 		if actual != tt.expected {
 			t.Errorf("Fibonacci(%d): expected %d, actual %d", tt.input, tt.expected, actual)
 		}

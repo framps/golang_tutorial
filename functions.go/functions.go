@@ -14,28 +14,20 @@ const maxFibonacci = 10 // just calculate fibo numbers until this limit
 // returns two values and the second is an indication for any errors
 func fibonacci(n int) (int, error) {
 
-	if n == 0 {
-		return 0, nil
-	} else if n == 1 {
-		return 1, nil
-	} else if n > 10 {
-		return 0, fmt.Errorf("number too big: %v - Limit: %v", n, maxFibonacci) // returns an error object
+	switch {
+	case n <= 2:
+		return n, nil
+	default:
+		if n > 10 {
+			return 0, fmt.Errorf("number too big: %v - Limit: %v", n, maxFibonacci) // returns an error object
+		}
+
+		n1, _ := fibonacci(n - 1)
+		n2, _ := fibonacci(n - 2)
+		return n1 + n2, nil
+
 	}
 
-	var ( // scoping - n1 and n1 are locat to the if statement otherwise if not defined beforehand
-		err error
-		n1  int
-		n2  int
-	)
-
-	if n2, err = fibonacci(n - 2); err != nil {
-		return 0, err
-	}
-
-	if n1, err = fibonacci(n - 1); err != nil { // should not occur
-		return 0, err
-	}
-	return n1 + n2, nil
 }
 
 func main() {

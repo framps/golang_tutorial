@@ -9,12 +9,12 @@ package main
 import (
 	"fmt"
 
-	"github.com/framps/golang_tutorial/functions.go/fibonacci"
+	"github.com/framps/golang_tutorial/functions/fibonacci"
 )
 
 func main() {
 
-	for i := 0; i < fibonacci.MaxFibonacci+3; i++ {
+	for i := -2; i < fibonacci.MaxFibonacci+3; i++ {
 		if value, err := fibonacci.Fibonacci(i); err != nil {
 			fmt.Printf("Fibonacci number of %d cannot be calculated: %v\n", i, err)
 		} else {

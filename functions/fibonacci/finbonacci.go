@@ -16,11 +16,13 @@ const MaxFibonacci = 10 // just calculate fibo numbers until this limit
 func Fibonacci(n int) (int, error) {
 
 	switch {
+	case n < 0:
+		return 0, fmt.Errorf("ERROR: number too small: %v - Minimum number: 0", n) // returns an error object
 	case n < 2:
 		return n, nil
 	default:
 		if n > MaxFibonacci {
-			return 0, fmt.Errorf("number too big: %v - Limit: %v", n, MaxFibonacci) // returns an error object
+			return 0, fmt.Errorf("ERROR: number too big: %v - Maximum number: %v", n, MaxFibonacci) // returns an error object
 		}
 
 		n1, _ := Fibonacci(n - 1)

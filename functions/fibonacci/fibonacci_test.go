@@ -1,7 +1,7 @@
 //
 // Copyright (C) 2017 framp at linux-tips-and-tricks dot de
 //
-// Samples for go syntax - calculate fibonacci number via recursion
+// amples for go syntax & packages - calculate fibonacci number via recursion
 
 package fibonacci
 

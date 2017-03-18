@@ -2,7 +2,7 @@
 //
 // Copyright (C) 2017 framp at linux-tips-and-tricks dot de
 //
-// Samples for go syntax - calculate fibonacci number via recursion
+// Samples for go syntax & packages - calculate fibonacci number via recursion
 
 package main
 
@@ -14,9 +14,10 @@ import (
 
 func main() {
 
-	for i := -2; i < fibonacci.MaxFibonacci+3; i++ {
+	// calculate fibonacci numbers, include some invalid arguments for call
+	for i := -1; i <= fibonacci.MaxFibonacci+1; i++ {
 		if value, err := fibonacci.Fibonacci(i); err != nil {
-			fmt.Printf("Fibonacci number of %d cannot be calculated: %v\n", i, err)
+			fmt.Printf("Error calculating Fibonacci number of %d: %v\n", i, err)
 		} else {
 			fmt.Printf("Fibonacci number of %d is %d\n", i, value)
 		}

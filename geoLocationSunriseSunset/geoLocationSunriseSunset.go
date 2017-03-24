@@ -45,7 +45,7 @@ var debug bool // debug flag
 const googleLocationURL = "http://maps.googleapis.com/maps/api/geocode/json"
 
 // GoogleLocationPayload - JSON payload returned by google location REST API
-type GoogleLocationPayload struct {
+type GoogleLocationResponse struct {
 	Results []struct {
 		Geometry struct {
 			Location struct {
@@ -61,7 +61,7 @@ type GoogleLocationPayload struct {
 const sunriseSunsetOrgURL = "http://api.sunrise-sunset.org/json"
 
 // SunriseSunsetOrgPayload - JSON payload returned by sunrise-sunset.org REST API
-type SunriseSunsetOrgPayload struct {
+type SunriseSunsetOrgResponse struct {
 	Results struct {
 		Sunrise string `json:"sunrise"`
 		Sunset  string `json:"sunset"`
@@ -127,17 +127,17 @@ func main() {
 	})
 	body := retrievePage(googleLocationURL + "?" + parms)
 
-	// unmarshall the json payload into go struct
-	payload := new(GoogleLocationPayload)
-	err := json.Unmarshal(*body, payload)
+	// unmarshall the json response into go struct
+	response := new(GoogleLocationResponse)
+	err := json.Unmarshal(*body, response)
 	abortIfError(err)
 
-	if payload.Status != "OK" {
-		fmt.Printf("Failed to retrieve geolocation. %s", payload.Status)
+	if response.Status != "OK" {
+		fmt.Printf("Failed to retrieve geolocation. %s", response.Status)
 		os.Exit(42)
 	}
-	longitude := payload.Results[0].Geometry.Location.Logitude
-	latitude := payload.Results[0].Geometry.Location.Lattitude
+	longitude := response.Results[0].Geometry.Location.Logitude
+	latitude := response.Results[0].Geometry.Location.Lattitude
 
 	fmt.Printf("Longitude: %v\nLatitude : %v\n", longitude, latitude)
 
@@ -155,15 +155,15 @@ func main() {
 	})
 	body = retrievePage(sunriseSunsetOrgURL + "?" + parms)
 
-	// unmarshall the json payload into go struct
-	payload2 := new(SunriseSunsetOrgPayload)
-	err = json.Unmarshal(*body, payload2)
+	// unmarshall the json response into go struct
+	response2 := new(SunriseSunsetOrgResponse)
+	err = json.Unmarshal(*body, response2)
 	abortIfError(err)
 
 	// 2017-03-24T04:57:33+00:00
 	// ISO 8601
-	sunrise := payload2.Results.Sunrise
-	sunset := payload2.Results.Sunset
+	sunrise := response2.Results.Sunrise
+	sunset := response2.Results.Sunset
 
 	fmt.Printf("sunrise: %v UTC\nsunset : %v UTC\n", sunrise, sunset)
 

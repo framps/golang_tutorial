@@ -2,7 +2,28 @@
 //
 // Copyright (C) 2017 framp at linux-tips-and-tricks dot de
 //
-// Samples for go syntax - simple REST client which calculates the sunrise and sunset time of a location
+// Samples for go syntax - simple REST client which calculates the geolocation, sunrise and sunset time of a location
+//
+// Sample locations:
+// go run geoLocationSunriseSunset.go -location "Stuttgart, Königstrasse, 1"
+// Output:
+// --- REST API call: Retrieving geolocation for Stuttgart, Königstrasse, 1
+// --- URL: http://maps.googleapis.com/maps/api/geocode/json?address=Stuttgart%2C+K%C3%B6nigstrasse%2C+1
+// Longitude: 9.182134
+// Latitude : 48.782154
+// --- REST API call: Retrieving UTC sunrise and sunset for 48.782154, 9.182134
+// --- URL: http://api.sunrise-sunset.org/json?date=today&formatted=0&lat=48.782154&lng=9.182134
+// sunrise: 2017-03-24T05:15:58+00:00 UTC
+// sunset : 2017-03-24T17:42:42+00:00 UTC
+// --- Converting UTC into local time
+// sunrise: 2017-03-24 06:15:58 +0100 CET
+// sunset : 2017-03-24 18:42:42 +0100 CET
+//
+// Other locations
+// go run geoLocationSunriseSunset.go -location "Canberra, Batman Street, 1"
+// go run geoLocationSunriseSunset.go -location "Berlin"
+// go run geoLocationSunriseSunset.go -location "Paris"
+// go run geoLocationSunriseSunset.go -location "New York"
 
 package main
 
@@ -13,11 +34,15 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
+	"time"
 )
 
-// Payload - JSON payload returned by REST API
-type Payload struct {
+var debug bool // debug flag
+
+// GoogleLocationPayload - JSON payload returned by google location REST API
+type GoogleLocationPayload struct {
 	Results []struct {
 		Geometry struct {
 			Location struct {
@@ -29,8 +54,8 @@ type Payload struct {
 	Status string `json:"status"`
 }
 
-// Payload2 - JSON payload returned by REST API
-type Payload2 struct {
+// SunriseSunsetOrgPayload - JSON payload returned by sunrise-sunset.org REST API
+type SunriseSunsetOrgPayload struct {
 	Results struct {
 		Sunrise string `json:"sunrise"`
 		Sunset  string `json:"sunset"`
@@ -38,8 +63,9 @@ type Payload2 struct {
 	Status string `json:"status"`
 }
 
-const apiURL = "http://maps.googleapis.com/maps/api/geocode/json?address=%s,%s,%d"
-const apiURL2 = "http://api.sunrise-sunset.org/json?lat=%f&lng=%f&date=today"
+// REST api urls
+const googleLocationURL = "http://maps.googleapis.com/maps/api/geocode/json"
+const sunriseSunetOrgURL = "http://api.sunrise-sunset.org/json"
 
 // helperfunction for errors
 func abortIfError(err error) {
@@ -49,62 +75,110 @@ func abortIfError(err error) {
 	}
 }
 
-func main() {
+// helper to create encoded query parms for url
+func getEncodedParms(values map[string]string) string {
+	vals := url.Values{}
+	isSet := false
+	for k, v := range values { // loop over value map
+		if !isSet {
+			vals.Set(k, v)
+			isSet = true
+		} else {
+			vals.Add(k, v)
+		}
+	}
+	return vals.Encode()
+}
 
-	// parse command arguments
-	city := flag.String("city", "Berlin", "City")
-	street := flag.String("street", "Bahnhofstrasse", "Street")
-	number := flag.Int("number", 1, "Number")
-	flag.Parse()
+// helper to calculate local time
+func localTime(t time.Time) time.Time {
+	loc, err := time.LoadLocation("Local")
+	abortIfError(err)
+	return t.In(loc)
+}
 
-	// setup API url with parameters
-	completeAPIURL := fmt.Sprintf(apiURL, *city, *street, *number)
-
-	fmt.Printf("Retrieving geolocation information for %s, %s %d\n", *city, *street, *number)
-
+// helper to execute get REST calls
+func retrievePage(url string) *[]byte {
+	fmt.Printf("--- URL: %v\n", url)
 	// establish connection
-	resp, err := http.Get(completeAPIURL)
-	defer resp.Body.Close()
+	resp, err := http.Get(url)
+	defer resp.Body.Close() // close connection at end of func
 	abortIfError(err)
 
-	// retrieve json
+	// retrieve json payload
 	body, err := ioutil.ReadAll(resp.Body)
 	abortIfError(err)
+	if debug {
+		fmt.Printf("*** Retrieved ***\n%v\n", string(body))
+	}
+	return &body
+}
+
+func main() {
+
+	// parse command arguments, set default parms and help text for -h flag
+	location := flag.String("location", "Stuttgart, Bahnhofstraße, 1", "Location to query sunrise and sunset")
+	flag.BoolVar(&debug, "debug", false, "enable debug output")
+	flag.Parse()
+
+	// retrieve geolocation information
+	fmt.Printf("--- REST API call: Retrieving geolocation for %s\n", *location)
+
+	// set url encoded REST call queries
+	// url?address=<location>
+	parms := getEncodedParms(map[string]string{
+		"address": *location,
+	})
+	body := retrievePage(googleLocationURL + "?" + parms)
 
 	// unmarshall the json payload into go struct
-	payload := new(Payload)
-	err = json.Unmarshal(body, payload)
+	payload := new(GoogleLocationPayload)
+	err := json.Unmarshal(*body, payload)
 	abortIfError(err)
 
+	if payload.Status != "OK" {
+		fmt.Printf("Failed to retrieve geolocation. %s", payload.Status)
+		os.Exit(42)
+	}
 	longitude := payload.Results[0].Geometry.Location.Logitude
 	latitude := payload.Results[0].Geometry.Location.Lattitude
 
-	fmt.Printf("Status: %v - Longitude: %v - Latitude: %v\n", payload.Status, longitude, latitude)
+	fmt.Printf("Longitude: %v\nLatitude : %v\n", longitude, latitude)
 
-	// get sunset and sunrise time
-	// http://sunrise-sunset.org/api
+	// retrieve sunset and sunrise time in UTC time
 
-	completeAPIURL = fmt.Sprintf(apiURL2, latitude, longitude)
+	fmt.Printf("--- REST API call: Retrieving UTC sunrise and sunset for %f, %f\n", latitude, longitude)
 
-	fmt.Printf("Retrieving UTC sunrise and sunset information for %f, %f\n", latitude, longitude)
-
-	// establish connection
-	resp, err = http.Get(completeAPIURL)
-	defer resp.Body.Close()
-	abortIfError(err)
-
-	// retrieve json
-	body, err = ioutil.ReadAll(resp.Body)
-	abortIfError(err)
+	// set url encoded REST call queries
+	// url?lat=<lat>?lng=<lng>?date=today?formatted=0
+	parms = getEncodedParms(map[string]string{
+		"lat":       fmt.Sprintf("%v", latitude),
+		"lng":       fmt.Sprintf("%v", longitude),
+		"date":      "today",
+		"formatted": "0",
+	})
+	body = retrievePage(sunriseSunetOrgURL + "?" + parms)
 
 	// unmarshall the json payload into go struct
-	payload2 := new(Payload2)
-	err = json.Unmarshal(body, payload2)
+	payload2 := new(SunriseSunsetOrgPayload)
+	err = json.Unmarshal(*body, payload2)
 	abortIfError(err)
 
+	// 2017-03-24T04:57:33+00:00
+	// ISO 8601
 	sunrise := payload2.Results.Sunrise
 	sunset := payload2.Results.Sunset
 
-	fmt.Printf("Retrieved UTC sunrise %s and sunset %s for %f, %f\n", sunrise, sunset, latitude, longitude)
+	fmt.Printf("sunrise: %v UTC\nsunset : %v UTC\n", sunrise, sunset)
 
+	// convert sunset and sunrise time into local time
+	// 2017-03-24 18:28:47.005227857 +0000 UTC
+
+	fmt.Printf("--- Converting UTC into local time\n")
+
+	sr, err := time.Parse(time.RFC3339, sunrise)
+	abortIfError(err)
+	ss, err := time.Parse(time.RFC3339, sunset)
+	abortIfError(err)
+	fmt.Printf("sunrise: %v\nsunset : %v\n", localTime(sr), localTime(ss))
 }

@@ -160,6 +160,11 @@ func main() {
 	err = json.Unmarshal(*body, response2)
 	abortIfError(err)
 
+	if response.Status != "OK" {
+		fmt.Printf("Failed to retrieve sunrise and sunset times. %s", response.Status)
+		os.Exit(42)
+	}
+
 	// 2017-03-24T04:57:33+00:00
 	// ISO 8601
 	sunrise := response2.Results.Sunrise

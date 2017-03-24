@@ -80,14 +80,8 @@ func abortIfError(err error) {
 // helper to create encoded query parms for url
 func getEncodedParms(values map[string]string) string {
 	vals := url.Values{}
-	isSet := false
-	for k, v := range values { // loop over value map
-		if !isSet {
-			vals.Set(k, v)
-			isSet = true
-		} else {
-			vals.Add(k, v)
-		}
+	for k, v := range values { // loop for map elements, return key, value
+		vals.Add(k, v) // append value to key if key was already used
 	}
 	return vals.Encode()
 }

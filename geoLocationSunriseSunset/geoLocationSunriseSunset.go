@@ -44,7 +44,7 @@ var debug bool // debug flag
 // REST api url
 const googleLocationURL = "http://maps.googleapis.com/maps/api/geocode/json"
 
-// GoogleLocationPayload - JSON payload returned by google location REST API
+// GoogleLocationResponse - JSON payload returned by google location REST API
 type GoogleLocationResponse struct {
 	Results []struct {
 		Geometry struct {
@@ -60,7 +60,7 @@ type GoogleLocationResponse struct {
 // REST api url
 const sunriseSunsetOrgURL = "http://api.sunrise-sunset.org/json"
 
-// SunriseSunsetOrgPayload - JSON payload returned by sunrise-sunset.org REST API
+// SunriseSunsetOrgResponse - JSON payload returned by sunrise-sunset.org REST API
 type SunriseSunsetOrgResponse struct {
 	Results struct {
 		Sunrise string `json:"sunrise"`

@@ -41,6 +41,9 @@ import (
 
 var debug bool // debug flag
 
+// REST api url
+const googleLocationURL = "http://maps.googleapis.com/maps/api/geocode/json"
+
 // GoogleLocationPayload - JSON payload returned by google location REST API
 type GoogleLocationPayload struct {
 	Results []struct {
@@ -54,6 +57,9 @@ type GoogleLocationPayload struct {
 	Status string `json:"status"`
 }
 
+// REST api url
+const sunriseSunsetOrgURL = "http://api.sunrise-sunset.org/json"
+
 // SunriseSunsetOrgPayload - JSON payload returned by sunrise-sunset.org REST API
 type SunriseSunsetOrgPayload struct {
 	Results struct {
@@ -62,10 +68,6 @@ type SunriseSunsetOrgPayload struct {
 	} `json:"results"`
 	Status string `json:"status"`
 }
-
-// REST api urls
-const googleLocationURL = "http://maps.googleapis.com/maps/api/geocode/json"
-const sunriseSunetOrgURL = "http://api.sunrise-sunset.org/json"
 
 // helperfunction for errors
 func abortIfError(err error) {
@@ -157,7 +159,7 @@ func main() {
 		"date":      "today",
 		"formatted": "0",
 	})
-	body = retrievePage(sunriseSunetOrgURL + "?" + parms)
+	body = retrievePage(sunriseSunsetOrgURL + "?" + parms)
 
 	// unmarshall the json payload into go struct
 	payload2 := new(SunriseSunsetOrgPayload)

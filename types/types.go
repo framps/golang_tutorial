@@ -17,7 +17,7 @@ func basicConstTypes() {
 
 	const (
 
-		// ### integeres ###
+		// ### integers ###
 
 		// following types are also available as unsigned, i.e.	uint uint8 uint16 uint32 uint64 uintptr
 		cint   int   = 42
@@ -29,9 +29,11 @@ func basicConstTypes() {
 		// ### characters/strings ###
 
 		// everything is UTF-8 in go
-		cstring      = "Hello world" // internal string representation is UTF-8
-		cbyte   byte = 0xff          // except just a simple binary byte
-		crune        = "日本語"         // UTF-8 character/code point
+		// see https://blog.golang.org/strings
+		cstring         = "Hello world" // internal string representation is UTF-8
+		cbyte    byte   = 0xff          // except just a simple binary byte
+		crune    string = "日本語"         // string with UTF-8 chars
+		utf8Char rune   = '日'           // UTF-8 character/code point which uses int32
 
 		// ### floats ###
 
@@ -48,7 +50,7 @@ func basicConstTypes() {
 		cbool bool = true
 	)
 
-	// following statement uses constants to eliminate compiler complaing about unused constants
+	// just get rid of compiler complaining about unused constants/variables
 	use(cbool, cbyte, ccomplex128, ccomplex64, cfloat32, cfloat64, cint, cint16, cint32, cfloat64)
 
 	// define two constants in one line
@@ -84,7 +86,7 @@ func basicVariableTypes() {
 	var var4l int
 	var4l = 4711
 
-	// following statement uses variables to eliminate compiler complaing about unused constants
+	// just get rid of compiler complaining about unused constants/variables
 	use(v1, v2, v3, v4, v5, v6, var4l, var4s, v11, v22, v33)
 
 }
@@ -216,7 +218,7 @@ func basicDataStructures() {
 	var p5 *[10]int // pointer to array of 10 ints
 	// p5 = p2					// not possible - pointers have same type but differnet array size
 
-	// following statement uses variables to eliminate compiler complaing about unused constants
+	// just get rid of compiler complaining about unused constants/variables
 	use(arrayInt10, arrayInt5, slice1, slice2, slice3, slice4, slice5, slice6, slice7, cstruct, userMap, p1, p2, p3, p4, p5)
 
 }

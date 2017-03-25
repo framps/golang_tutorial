@@ -6,12 +6,12 @@ import "fmt"
 //
 // Copyright (C) 2017 framp at linux-tips-and-tricks dot de
 //
-// Samples for go syntax
+// Samples for go syntax of types
 
 func basicConstTypes() {
 
 	// basic types
-	// see https://tour.golang.org/basics/11
+	// see https://tour.golang.org/basics/1
 
 	// All constants and variables are typed, either implicit or explicit
 
@@ -56,6 +56,8 @@ func basicConstTypes() {
 
 }
 
+// see https://tour.golang.org/basics/1
+
 func basicVariableTypes() {
 
 	// declare and initialze variables. Type is implicit
@@ -82,31 +84,25 @@ func basicVariableTypes() {
 	var var4l int
 	var4l = 4711
 
-	// pointers
-
-	var p1 *int         // pointer to int
-	var p2 *[5]int      // pointer to array of 5 ints
-	var p3 [8]*int      // array of 8 pointers to int
-	var p4 *[10]*[8]int // pointer to 10 arrays of 8 pointers to ints
-
-	var p5 *[10]int // pointer to array of 10 ints
-	// p5 = p2					// not possible - pointers have same type but differnet array size
-
 	// following statement uses variables to eliminate compiler complaing about unused constants
-	use(v1, v2, v3, v4, v5, v6, var4l, var4s, v11, v22, v33, p1, p2, p3, p4, p5)
+	use(v1, v2, v3, v4, v5, v6, var4l, var4s, v11, v22, v33)
 
 }
 
 func basicDataStructures() {
 
-	// arrays - in contrast to C they are NOT pointers
+	// ### arrays ###
+	// https://tour.golang.org/moretypes/6
+
+	// in contrast to C arrays are NOT pointers
 
 	var arrayInt10 [10]int // array of 10 ints
 	var arrayInt5 [5]int   // array of 5 ints
 	// Note: array1Int10 is not compatible with arrayInt5 because of different array size
 	// arrayInt10 = arrayInt5 // assignment not possible
 
-	// structures
+	// ### structs ###
+	// https://tour.golang.org/moretypes/2
 
 	var cstruct = struct {
 		name    string
@@ -133,8 +129,10 @@ func basicDataStructures() {
 	printStruct("greenCar", greenCar)
 	// greenCar: {color:green wheels:4}
 
-	// slices (variable arrays)
+	// ### slices ###
+	// dynamic arrays
 	// See https://tour.golang.org/moretypes/7
+	// see https://blog.golang.org/slices
 
 	// arrays are fixed. Variables arrays are called slices
 	// slices have a length and a capacity
@@ -176,7 +174,50 @@ func basicDataStructures() {
 	printSlice("slice8: slice5[3:]", slice8)
 	// slice8: slice5[3:]: [4 5 6 7 8 9 10] - len: 7, cap: 7
 
-	use(arrayInt10, arrayInt5, slice1, slice2, slice3, slice4, slice5, slice6, slice7, cstruct)
+	// double capacity of a slice
+	newSlice8 := make([]int, len(slice8), 2*cap(slice8)) // create new slice with doule capacity
+	copy(newSlice8, slice8)                              // copy slice8 into bigger slice
+	printSlice("newSlice8: slice8 with double capacity", newSlice8)
+	// newSlice8: slice8 with double capacity: [4 5 6 7 8 9 10] - len: 7, cap: 14
+
+	// ### maps ###
+	// https://tour.golang.org/moretypes/19
+
+	// keys: string, values: int
+	stringMap := map[string]int{
+		"eins": 1,
+		"zwei": 2,
+		"drei": 3}
+
+	printStruct("stringMap", stringMap)
+	// stringMap: map[eins:1 zwei:2 drei:3]
+
+	type Address struct {
+		street string
+		city   string
+	}
+
+	// map of users with their address
+	userMap := map[string]Address{
+		"Chris":    Address{"Bahnhofstrasse", "Stuttgart"},
+		"Charly":   Address{"Place de l'etoile", "Paris"},
+		"Clarence": Address{"Broadway", "New York"},
+	}
+	printStruct("userMap", userMap)
+	// userMap: map[Clarence:{street:Broadway city:New York} Chris:{street:Bahnhofstrasse city:Stuttgart} Charly:{street:Place de l'etoile city:Paris}]
+
+	// ### pointers ###
+
+	var p1 *int         // pointer to int
+	var p2 *[5]int      // pointer to array of 5 ints
+	var p3 [8]*int      // array of 8 pointers to int
+	var p4 *[10]*[8]int // pointer to 10 arrays of 8 pointers to ints
+
+	var p5 *[10]int // pointer to array of 10 ints
+	// p5 = p2					// not possible - pointers have same type but differnet array size
+
+	// following statement uses variables to eliminate compiler complaing about unused constants
+	use(arrayInt10, arrayInt5, slice1, slice2, slice3, slice4, slice5, slice6, slice7, cstruct, userMap, p1, p2, p3, p4, p5)
 
 }
 

@@ -79,6 +79,12 @@ func basicVariableTypes() {
 		v6 string
 	)
 
+	// define and intialize two variables in one line
+	var v44, v55 = "one", "two"
+
+	// define two variables as int
+	var v66, v77 int
+
 	// implicit variable declaration and assignment
 
 	var4s := 4711 // defines variable var4 as int and assigns 4711
@@ -87,7 +93,7 @@ func basicVariableTypes() {
 	var4l = 4711
 
 	// just get rid of compiler complaining about unused constants/variables
-	use(v1, v2, v3, v4, v5, v6, var4l, var4s, v11, v22, v33)
+	use(v1, v2, v3, v4, v5, v6, var4l, var4s, v11, v22, v33, v44, v55, v66, v77)
 
 }
 

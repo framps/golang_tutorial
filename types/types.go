@@ -234,7 +234,7 @@ func printStruct(name string, s interface{}) {
 
 // helper to just use the passed elements to get rid of compiler warning the element is not used
 func use(elements ...interface{}) {
-	goto nop // yes, go supports go statements also ...
+	goto nop // yes, go supports goto statements also ...
 nop:
 }
 

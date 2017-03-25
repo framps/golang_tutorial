@@ -82,8 +82,18 @@ func basicVariableTypes() {
 	var var4l int
 	var4l = 4711
 
+	// pointers
+
+	var p1 *int         // pointer to int
+	var p2 *[5]int      // pointer to array of 5 ints
+	var p3 [8]*int      // array of 8 pointers to int
+	var p4 *[10]*[8]int // pointer to 10 arrays of 8 pointers to ints
+
+	var p5 *[10]int // pointer to array of 10 ints
+	// p5 = p2					// not possible - pointers have same type but differnet array size
+
 	// following statement uses variables to eliminate compiler complaing about unused constants
-	use(v1, v2, v3, v4, v5, v6, var4l, var4s, v11, v22, v33)
+	use(v1, v2, v3, v4, v5, v6, var4l, var4s, v11, v22, v33, p1, p2, p3, p4, p5)
 
 }
 

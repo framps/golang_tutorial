@@ -113,6 +113,7 @@ func basicDataStructures() {
 		address string
 	}{"Ronald Grump", "Washington"}
 	printStruct("cstruct", cstruct)
+	// struct: {name:Ronald Grump address:Washington}
 
 	// stuct type definition
 	type Car struct {
@@ -122,10 +123,15 @@ func basicDataStructures() {
 
 	var redCar = Car{color: "red", wheels: 4} // long constant form
 	printStruct("redCar", redCar)
+	// redCar: {color:red wheels:4}
+
 	var blackCar = Car{color: "black"} // long constant form, wheels initialized with 0 (default initialization)
 	printStruct("blackCar", blackCar)
+	// blackCar: {color:black wheels:0}
+
 	var greenCar = Car{"green", 4} // short constant form, elements have to be in sequence
 	printStruct("greenCar", greenCar)
+	// greenCar: {color:green wheels:4}
 
 	// slices (variable arrays)
 	// See https://tour.golang.org/moretypes/7
@@ -134,31 +140,41 @@ func basicDataStructures() {
 	// slices have a length and a capacity
 	slice1 := []int{1, 2, 3, 4}
 	printSlice("slice1", slice1)
+	// slice1: [1 2 3 4] - len: 4, cap: 4
 
 	slice2 := make([]int, 3, 10) // create slice of size 3 and capacity 10
 	printSlice("slice2", slice2)
+	// slice2: [0 0 0] - len: 3, cap: 10
 
 	slice3 := append(slice2, 100, 200, 300) // append 3 elements
 	printSlice("slice3: slice2 appended 100,200,300", slice3)
+	// slice3: slice2 appended 100,200,300: [0 0 0 100 200 300] - len: 6, cap: 10
 
 	slice4 := append(slice2, slice1...) // slice... converts slice_1 into a variadic parameter for append (variable list of parameters)
 	printSlice("slice4: slice1 appended to slice2", slice4)
+	// slice4: slice1 appended to slice2: [0 0 0 1 2 3 4] - len: 7, cap: 10
 
 	slice5 := []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10} // create slice with 10 elements
 	printSlice("slice5", slice5)
+	// slice5: [1 2 3 4 5 6 7 8 9 10] - len: 10, cap: 10
 
 	slice6 := slice5[:2] // new slice which has the first two elements and shares elements with slice5
 	printSlice("slice6: slice5[:2]", slice6)
+	// slice6: slice5[:2]: [1 2] - len: 2, cap: 10
 
 	slice6[0] = 42
 	printSlice("slice6: slice6[0] was set to 42", slice6)
+	// slice6: slice6[0] was set to 42: [42 2] - len: 2, cap: 10
 	printSlice("slice5: slice6[0] was set to 42", slice5)
+	// slice5: slice6[0] was set to 42: [42 2 3 4 5 6 7 8 9 10] - len: 10, cap: 10
 
 	slice7 := slice5[5:8] // new slice which starts at 5 and ends at 7! (8-1)
 	printSlice("slice7: slice5[5:8]", slice7)
+	// slice7: slice5[5:8]: [6 7 8] - len: 3, cap: 5
 
 	slice8 := slice5[3:] // new slice which starts at 3 in slice5
 	printSlice("slice8: slice5[3:]", slice8)
+	// slice8: slice5[3:]: [4 5 6 7 8 9 10] - len: 7, cap: 7
 
 	use(arrayInt10, arrayInt5, slice1, slice2, slice3, slice4, slice5, slice6, slice7, cstruct)
 

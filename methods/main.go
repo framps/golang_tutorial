@@ -30,12 +30,17 @@ func execute(cars []*single.Car, function int, increment ...int) {
 	}
 }
 
+// 1) create three cars: Porsche, Beegle and Ferrari
+// 2) start them and accelerate to max speed
+// 3) decelerate
+// 4) turn car off
+
 func main() {
 	porsche := single.NewCar("Porsche", "Black", 220)
-	käfer := single.NewCar("Käfer", "Blue", 80)
+	beegle := single.NewCar("Beegle", "Blue", 80)
 	ferrari := single.NewCar("Ferrari", "Red", 350)
 
-	cars := []*single.Car{porsche, käfer, ferrari}
+	cars := []*single.Car{porsche, beegle, ferrari}
 
 	execute(cars, turnOn)         // turn on car
 	execute(cars, accelerate, 50) // accelerate them

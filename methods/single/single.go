@@ -48,18 +48,22 @@ func (c *Car) Accelerate(increment int) {
 	if increment > 0 {
 		if c.currentSpeed+increment < c.maxSpeed {
 			c.currentSpeed += increment
-			fmt.Printf("%s: Accelerated by %d to %d\n", c.name, increment, c.currentSpeed)
+			fmt.Printf("%s-> Accelerated by %d to %d\n", c.name, increment, c.currentSpeed)
 		} else {
-			c.currentSpeed = c.maxSpeed
-			fmt.Printf("%s: Reached max speed %d\n", c.name, c.currentSpeed)
+			if c.currentSpeed < c.maxSpeed {
+				c.currentSpeed = c.maxSpeed
+				fmt.Printf("%s: Reached max speed %d\n", c.name, c.currentSpeed)
+			}
 		}
 	} else {
 		if c.currentSpeed+increment > 0 {
 			c.currentSpeed += increment
-			fmt.Printf("%s: Accelerated by %d to %d\n", c.name, increment, c.currentSpeed)
+			fmt.Printf("%s-> Accelerated by %d to %d\n", c.name, increment, c.currentSpeed)
 		} else {
-			c.currentSpeed = 0
-			fmt.Printf("%s: Reached min speed %d\n", c.name, c.currentSpeed)
+			if c.currentSpeed > 0 {
+				c.currentSpeed = 0
+				fmt.Printf("%s: Reached min speed %d\n", c.name, c.currentSpeed)
+			}
 		}
 	}
 }

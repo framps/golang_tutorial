@@ -1,3 +1,11 @@
+// Samples used in a small go tutorial
+//
+// Copyright (C) 2017 framp at linux-tips-and-tricks dot de
+//
+// Samples for go templates
+//
+// See github.com/framps/golang_tutorial for latest code
+
 package game
 
 import (
@@ -9,9 +17,12 @@ import (
 type States int
 
 const (
-	gameStarted States = iota
-	gameRunning
-	gameFinished
+	// GameInitialized -
+	GameInitialized States = iota
+	// GameRunning -
+	GameRunning
+	// GameFinished -
+	GameFinished
 )
 
 // CurrentScore -
@@ -38,7 +49,7 @@ const ( // upper and lower bounds
 func NewHighLow() *HighLow {
 	return &HighLow{
 		rand.Intn(highLimit-lowLimit+1) + lowLimit,
-		gameStarted,
+		GameInitialized,
 		CurrentScore{
 			Low:     lowLimit - 1,
 			High:    highLimit + 1,
@@ -47,8 +58,8 @@ func NewHighLow() *HighLow {
 	}
 }
 
-// States -
-func (h *HighLow) getState() (s States) {
+// GetState -
+func (h *HighLow) GetState() (s States) {
 	return h.State
 }
 
@@ -63,7 +74,7 @@ func (h *HighLow) Guess(guess int) (hit bool, err error) {
 	h.Guesses++
 
 	if h.ActualValue == guess {
-		h.State = gameFinished
+		h.State = GameFinished
 		return true, nil
 	}
 
@@ -74,7 +85,7 @@ func (h *HighLow) Guess(guess int) (hit bool, err error) {
 		h.High = guess
 	}
 
-	h.State = gameRunning
+	h.State = GameRunning
 
 	return false, nil
 }

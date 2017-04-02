@@ -8,28 +8,32 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/framps/golang_tutorial/highLowWebserver/game"
+	"./game"
 )
 
 var highLow *game.HighLow
 
+// structure passed to template
 type htmlParms struct {
 	Game  *game.CurrentScore
 	Error error
 }
 
+// request handler
 func processHandler(w http.ResponseWriter, r *http.Request) {
 
 	if highLow == nil {
 		highLow = game.NewHighLow()
 	}
 
-	var done bool
-	var g int
-	var err error
-	r.ParseForm()
+	var done bool // game finished
+	var g int     // guessed number
+	var err error // any errors
+
+	r.ParseForm() // retrieve form guess value
 	guess := r.Form.Get("guess")
-	if g, err = strconv.Atoi(guess); err == nil {
+
+	if g, err = strconv.Atoi(guess); err == nil { // convert to int
 		done, err = highLow.Guess(g)
 		if done {
 			err = fmt.Errorf(fmt.Sprintf("Congratulations ! You solved the previous game with %d guesses. Try again.", highLow.Guesses))
@@ -51,6 +55,6 @@ func main() {
 		Addr: "127.0.0.1:8080",
 	}
 
-	http.HandleFunc("/process", processHandler)
+	http.HandleFunc("/", processHandler)
 	server.ListenAndServe()
 }

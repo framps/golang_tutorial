@@ -17,7 +17,7 @@ form, table {
       <div>
     Number of guesses: {{ .Game.Guesses }} <br/> </br>
     {{ .Game.Low }} <
-    <form action="/process" method="post">
+    <form action="/" method="post">
           <input name="guess" type="text" size="3">
     </form>
     < {{ .Game.High }} </br>

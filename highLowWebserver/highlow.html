@@ -1,0 +1,20 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Framp's sample high low server</title>
+  </head>
+  <body>
+    Guesses: {{ .Game.Guesses }} <br/>
+    Low: {{ .Game.Low }} </br>
+    High: {{ .Game.High }} </br>
+    {{ if .Error }}
+      <b> {{ .Error }} </b> <br/>
+    {{ end }}
+    <hr/>
+    <form action="/process" method="post">
+      Guess: <input name="guess" type="text" size="50">
+     <hr/>
+     <button id="submit">Guess</button>
+    </form>
+  </body>
+</html>

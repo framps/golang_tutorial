@@ -5,7 +5,6 @@ import (
 	"html/template"
 	"math/rand"
 	"net/http"
-	"os"
 	"strconv"
 	"time"
 
@@ -20,6 +19,11 @@ type htmlParms struct {
 }
 
 func processHandler(w http.ResponseWriter, r *http.Request) {
+
+	if highLow == nil {
+		highLow = game.NewHighLow()
+	}
+
 	var done bool
 	var g int
 	var err error
@@ -28,29 +32,25 @@ func processHandler(w http.ResponseWriter, r *http.Request) {
 	if g, err = strconv.Atoi(guess); err == nil {
 		done, err = highLow.Guess(g)
 		if done {
-			os.Exit(0)
+			err = fmt.Errorf(fmt.Sprintf("Congratulations ! You solved the previous game with %d guesses. Try again.", highLow.Guesses))
+			highLow = game.NewHighLow()
 		}
+	} else {
+		err = fmt.Errorf("Invalid number")
 	}
-	t, _ := template.ParseFiles("highlow.html")
-	t.Execute(w, &htmlParms{&highLow.CurrentScore, err})
-}
 
-func highlowHandler(w http.ResponseWriter, r *http.Request) {
 	t, _ := template.ParseFiles("highlow.html")
-	err := fmt.Errorf("")
 	t.Execute(w, &htmlParms{&highLow.CurrentScore, err})
 }
 
 func main() {
 
 	rand.Seed(time.Now().UTC().UnixNano())
-	highLow = game.NewHighLow()
 
 	server := http.Server{
 		Addr: "127.0.0.1:8080",
 	}
 
 	http.HandleFunc("/process", processHandler)
-	http.HandleFunc("/", highlowHandler)
 	server.ListenAndServe()
 }

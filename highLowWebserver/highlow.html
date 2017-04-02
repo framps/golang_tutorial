@@ -3,18 +3,29 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <title>Framp's sample high low server</title>
   </head>
+  <style type="text/css">
+form, table {
+     display:inline;
+     margin:0px;
+     padding:0px;
+}
+</style>
   <body>
-    Guesses: {{ .Game.Guesses }} <br/>
-    Low: {{ .Game.Low }} </br>
-    High: {{ .Game.High }} </br>
+    <p/><p/>
+    <center>
+      Just a simple high low game </br></br>
+      <div>
+    Number of guesses: {{ .Game.Guesses }} <br/> </br>
+    {{ .Game.Low }} <
+    <form action="/process" method="post">
+          <input name="guess" type="text" size="3">
+    </form>
+    < {{ .Game.High }} </br>
+    <hr/>
     {{ if .Error }}
       <b> {{ .Error }} </b> <br/>
     {{ end }}
-    <hr/>
-    <form action="/process" method="post">
-      Guess: <input name="guess" type="text" size="50">
-     <hr/>
-     <button id="submit">Guess</button>
-    </form>
+  </div>
+</center>
   </body>
 </html>

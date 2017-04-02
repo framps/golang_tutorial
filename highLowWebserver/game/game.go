@@ -5,6 +5,15 @@ import (
 	"math/rand"
 )
 
+// States -
+type States int
+
+const (
+	gameStarted States = iota
+	gameRunning
+	gameFinished
+)
+
 // CurrentScore -
 type CurrentScore struct {
 	Low     int
@@ -15,12 +24,13 @@ type CurrentScore struct {
 // HighLow -
 type HighLow struct {
 	ActualValue int
+	State       States
 	CurrentScore
 }
 
 // constant definitions
 const ( // upper and lower bounds
-	highLimit = 100 // integer constant
+	highLimit = 99 // integer constant
 	lowLimit  = 1
 )
 
@@ -28,46 +38,43 @@ const ( // upper and lower bounds
 func NewHighLow() *HighLow {
 	return &HighLow{
 		rand.Intn(highLimit-lowLimit+1) + lowLimit,
+		gameStarted,
 		CurrentScore{
-			Low:     lowLimit,
-			High:    highLimit,
+			Low:     lowLimit - 1,
+			High:    highLimit + 1,
 			Guesses: 0,
 		},
 	}
 }
 
-// Score - retun current score
-func (h *HighLow) Score() (s CurrentScore) {
-	return h.Score()
+// States -
+func (h *HighLow) getState() (s States) {
+	return h.State
 }
 
 // Guess - execute a guess
 func (h *HighLow) Guess(guess int) (hit bool, err error) {
 
-	fmt.Printf("Guess: %d\nState: %+v\n", guess, *h)
-
-	if guess < h.Low || guess > h.High { // logical comparisons
+	if guess <= h.Low || guess >= h.High { // logical comparisons
 		err := fmt.Errorf("Number %d is out of bounds\n", guess)
-		fmt.Printf("Error: %v", err)
 		return false, err
 	}
 
 	h.Guesses++
 
 	if h.ActualValue == guess {
+		h.State = gameFinished
 		return true, nil
 	}
 
 	switch h.ActualValue > guess {
 	case true:
-		h.Low = guess + 1
-		fmt.Printf("Lower\n")
+		h.Low = guess
 	case false:
-		h.High = guess - 1
-		fmt.Printf("Higher\n")
+		h.High = guess
 	}
 
-	fmt.Printf("State: %+v\n", *h)
+	h.State = gameRunning
 
 	return false, nil
 }

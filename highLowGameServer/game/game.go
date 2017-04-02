@@ -39,10 +39,9 @@ type HighLow struct {
 	CurrentScore
 }
 
-// constant definitions
 const ( // upper and lower bounds
-	highLimit = 99 // integer constant
 	lowLimit  = 1
+	highLimit = 99
 )
 
 // NewHighLow - Create new game
@@ -66,19 +65,19 @@ func (h *HighLow) GetState() (s States) {
 // Guess - execute a guess
 func (h *HighLow) Guess(guess int) (hit bool, err error) {
 
-	if guess <= h.Low || guess >= h.High { // logical comparisons
+	if guess <= h.Low || guess >= h.High { // check guess
 		err := fmt.Errorf("Number %d is out of bounds\n", guess)
 		return false, err
 	}
 
-	h.Guesses++
+	h.Guesses++ // another round
 
-	if h.ActualValue == guess {
+	if h.ActualValue == guess { // hit
 		h.State = GameFinished
 		return true, nil
 	}
 
-	switch h.ActualValue > guess {
+	switch h.ActualValue > guess { // set lower/upper value accordingly
 	case true:
 		h.Low = guess
 	case false:

@@ -19,7 +19,8 @@ import (
 	"github.com/framps/golang_tutorial/highLowGameServer/game"
 )
 
-var highLow *game.HighLow // the game itself
+var highLow *game.HighLow         // the game itself
+var myTemplate *template.Template // the template used
 
 // structure passed to template
 type htmlParms struct {
@@ -40,11 +41,11 @@ func processHandler(w http.ResponseWriter, r *http.Request) {
 
 	if highLow.GetState() != game.GameInitialized {
 
-		r.ParseForm() // retrieve form guess value
+		r.ParseForm() // retrieve from form the guess value
 		guess := r.Form.Get("guess")
 
 		if g, err = strconv.Atoi(guess); err == nil && len(guess) > 0 { // convert to int
-			done, err = highLow.Guess(g)
+			done, err = highLow.Guess(g) // execute game
 			if done {
 				err = fmt.Errorf(fmt.Sprintf("Congratulations ! You solved the game with %d guesses. Try again.", highLow.Guesses))
 				highLow = game.NewHighLow()
@@ -57,8 +58,10 @@ func processHandler(w http.ResponseWriter, r *http.Request) {
 		highLow.State = game.GameRunning
 	}
 
-	t, _ := template.ParseFiles("highlow.html")
-	t.Execute(w, &htmlParms{&highLow.CurrentScore, err})
+	if myTemplate == nil { // don't parse the template all the time
+		myTemplate, _ = template.ParseFiles("highlow.html")
+	}
+	myTemplate.Execute(w, &htmlParms{&highLow.CurrentScore, err}) // display template
 }
 
 func main() {

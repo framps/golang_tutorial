@@ -13,6 +13,7 @@ import ( // used packages
 	"os"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // constant definitions
@@ -28,11 +29,14 @@ func main() {
 	var (
 		high        = highLimit // type int derived from constant
 		low         = lowLimit
-		actualValue int                           // ints are initialized with 0
-		err         error                         // pointers are initialized with nil
-		guessValue  = rand.Intn(high-low+1) + low //
-		guesses     int                           // ints are initialized with 0
+		actualValue int   // ints are initialized with 0
+		err         error // pointers are initialized with nil
+		guesses     int   // ints are initialized with 0
 	)
+
+	rand.Seed(time.Now().UTC().UnixNano()) // randomize prseudo random generator
+
+	guessValue := rand.Intn(high-low+1) + low // create e random integer to guess
 
 	for { // endless loop
 		reader := bufio.NewReader(os.Stdin)                                                // read from console, variable reader is implicitely defined
@@ -59,9 +63,9 @@ func main() {
 
 		switch actualValue > guessValue { // switch
 		case true:
-			high = actualValue // no break needed because this is standard
+			high = actualValue - 1 // no break needed because this is standard
 		case false:
-			low = actualValue
+			low = actualValue + 1
 		}
 	}
 }

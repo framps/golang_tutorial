@@ -69,7 +69,7 @@ func main() {
 	rand.Seed(time.Now().UTC().UnixNano())
 
 	server := http.Server{
-		Addr: "127.0.0.1:8080",
+		Addr: ":8080",
 	}
 
 	fmt.Printf("Starting highlow game server on %s\n", server.Addr)

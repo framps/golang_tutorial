@@ -1,0 +1,44 @@
+<!--
+// Samples used in a small go tutorial
+//
+// Copyright (C) 2017 framp at linux-tips-and-tricks dot de
+//
+// Samples for go templates
+//
+// See github.com/framps/golang_tutorial for latest code
+-->
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Framp's sample high low server</title>
+  </head>
+  <style type="text/css">
+form, table {
+     display:inline;
+}
+.center {
+    padding: 70px 0;
+    border: 3px solid green;
+    text-align: center;
+}
+</style>
+  <body>
+    <div class="center">
+      <center>
+      <b>Just a simple high low game</b></br></br>
+      Online Players: {{ .OnlinePlayers }} <br/> </br>
+    Number of guesses: {{ .Game.Guesses }} <br/> </br>
+    {{ .Game.Low }} <                             <!-- Low value of game -->
+    <form action="/" method="post">               <!-- entry field for guess  -->
+          <input name="guess" type="text" size="3" autofocus="autofocus">
+    </form>
+    < {{ .Game.High }} </br>                      <!-- High value of game -->
+    {{ if .Error }}
+      <br/> <b> {{ .Error }} </b>                 <!-- any message -->
+    {{ else }}
+  </br> </br>
+    {{ end }}
+  </center>
+  </div>
+  </body>
+</html>

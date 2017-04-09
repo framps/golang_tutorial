@@ -10,6 +10,7 @@ prepare:
 	go get github.com/tools/godep
 
 build: prepare
+	godep save
 	godep go build
 
 test: prepare build

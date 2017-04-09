@@ -21,9 +21,9 @@ import (
 	"os"
 
 	"unicode/utf16"
-
-	"github.com/bjarneh/latinx"
 )
+
+var targetURL, password string
 
 type loginResponse struct {
 	SID       string
@@ -56,25 +56,27 @@ func utf16toString(b []uint8) (string, error) {
 	return string(utf16.Decode(w)), nil
 }
 
-func main() {
-
-	targetURL := os.Getenv("FRITZ_URL")
-	password := os.Getenv("FRITZ_PWD")
-
-	if len(targetURL) == 0 || len(password) == 0 {
-		fmt.Println("Environment variable FRITZ_URL and/or FRITZ_PWD not set")
-		os.Exit(42)
+func handleError(err error) {
+	if err != nil {
+		panic(err)
 	}
+}
+
+func retrieveChallenge() string {
 
 	client := &http.Client{}
 
 	req, _ := http.NewRequest("GET", targetURL+"/login_sid.lua", nil)
 	req.Header.Set("Accept", "application/xml")
 	req.Header.Set("Content-Type", "text/plain")
-	res, _ := client.Do(req)
+	res, err := client.Do(req)
+	handleError(err)
 
-	var body string
-	if res.StatusCode == 200 { // OK
+	if res.StatusCode != 200 {
+		fmt.Printf("%s %s", res.Status, res.StatusCode)
+		fmt.Printf("*** Data ***\n%v\n", res)
+		os.Exit(42)
+	} else {
 		bodyBytes, _ := ioutil.ReadAll(res.Body)
 		fmt.Printf("Body: %+v\n", string(bodyBytes))
 
@@ -84,27 +86,84 @@ func main() {
 		}
 		fmt.Printf("Response: %+v\n", response)
 
-		decode := response.Challenge + "-" + password
+		if response.SID == "0000000000000000" {
 
-		converter := latinx.Get(latinx.ISO_8859_1)
-		// convert a stream of ISO_8859_1 bytes to UTF-8
-		utf8bytes, _ := converter.Decode([]byte(decode))
+			response.Challenge = "dd23b85f"
+			fmt.Printf("Challenge: %s\n", response.Challenge)
 
-		utf8Decoded := []rune{}
-		for _, r := range utf8bytes {
-			utf8Decoded = append(utf8Decoded, rune(r))
+			decode := response.Challenge + "-" + password
+			decodeRune := []rune(decode)
+			/*
+					converter := latinx.Get(latinx.ISO_8859_1)
+					// convert a stream of ISO_8859_1 bytes to UTF-8
+					utf8bytes, err := converter.Decode([]byte(decode))
+					handleError(err)
+
+					fmt.Printf("Challenge + pwd decode: %s\n", utf8bytes)
+
+					utf8Decoded := []rune{}
+					for _, r := range utf8bytes {
+						utf8Decoded = append(utf8Decoded, rune(r))
+					}
+
+					utf16Encoded := utf16.Encode(utf8Decoded)
+
+					u := make([]byte, 0)
+					for _, u16 := range utf16Encoded {
+						b := make([]byte, 2)
+						binary.BigEndian.PutUint16(b, u16)
+						u = append(u, b...)
+					}
+				fmt.Printf("Challenge + pwd decode: %x\n", u)
+			*/
+
+			hasher := md5.New()
+			hasher.Write([]byte(string(decodeRune)))
+			enc := hex.EncodeToString(hasher.Sum(nil))
+
+			fmt.Printf("M: %s\n", enc)
+
+			response_bf := response.Challenge + "-" + enc
+
+			return string(response_bf)
+
+		} else {
+			return response.SID
 		}
+	}
+	return ""
+}
 
-		utf16Encoded := utf16.Encode(utf8Decoded)
+func login(challenge string) {
+	client := &http.Client{}
 
-		hasher := md5.New()
-		hasher.Write([]byte(utf16Encoded))
-		hex.EncodeToString(hasher.Sum(nil))
+	req, _ := http.NewRequest("GET", targetURL+"/login_sid.lua&response="+challenge, nil)
+	req.Header.Set("Accept", "text/html,application/xhtml+xml,application/xml")
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	res, err := client.Do(req)
+	handleError(err)
 
-		fmt.Printf("%s", utf16.Decode(utf16Encoded))
-
-	} else {
-		fmt.Printf("%v\n%v\n", res.StatusCode, body)
+	if res.StatusCode != 200 {
+		fmt.Printf("%s %s", res.Status, res.StatusCode)
+		fmt.Printf("*** Data ***\n%v\n", res)
 		os.Exit(42)
 	}
+
+}
+
+func main() {
+
+	targetURL = os.Getenv("FRITZ_URL")
+	password = os.Getenv("FRITZ_PWD")
+
+	if len(targetURL) == 0 || len(password) == 0 {
+		fmt.Println("Environment variable FRITZ_URL and/or FRITZ_PWD not set")
+		os.Exit(42)
+	}
+
+	challenge := retrieveChallenge()
+	fmt.Printf("SID: %s\n", challenge)
+
+	login(challenge)
+
 }

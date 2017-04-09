@@ -1,0 +1,6 @@
+{
+	"ImportPath": "github.com/framps/golang_tutorial/highLowGameServer",
+	"GoVersion": "go1.8",
+	"GodepVersion": "v79",
+	"Deps": []
+}

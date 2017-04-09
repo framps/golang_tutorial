@@ -1,0 +1,9 @@
+applications:
+- path: .
+  memory: 128M
+  instances: 1
+  name: highLowGameServer 
+  randomoute: true
+  disk_quota: 1024M
+  command: highLowGameServer 
+  buildpack: https://github.com/cloudfoundry/go-buildpack.git

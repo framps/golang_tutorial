@@ -3,6 +3,8 @@
 // Copyright (C) 2017 framp at linux-tips-and-tricks dot de
 //
 // Samples for go utf-8 handling
+//
+// See github.com/framps/golang_tutorial for latest code
 
 package main
 

@@ -3,6 +3,8 @@
 // Copyright (C) 2017 framp at linux-tips-and-tricks dot de
 //
 // methods in go
+//
+// See github.com/framps/golang_tutorial for latest code
 
 package main
 

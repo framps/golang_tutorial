@@ -5,6 +5,8 @@
 // Samples for sql usage in go
 //
 // See github.com/framps/golang_tutorial for latest code
+//
+// See github.com/framps/golang_tutorial for latest code
 
 package main
 

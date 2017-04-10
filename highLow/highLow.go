@@ -3,6 +3,8 @@
 // Copyright (C) 2017 framp at linux-tips-and-tricks dot de
 //
 // Samples for go syntax - simple high/low to demonstrate some go syntax constructs
+//
+// See github.com/framps/golang_tutorial for latest code
 
 package main
 

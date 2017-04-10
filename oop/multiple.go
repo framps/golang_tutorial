@@ -5,6 +5,8 @@ package multiple
 // Copyright (C) 2017 framp at linux-tips-and-tricks dot de
 //
 // 'multiple inheritance' in go
+//
+// See github.com/framps/golang_tutorial for latest code
 
 import "fmt"
 

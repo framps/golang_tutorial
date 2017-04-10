@@ -2,10 +2,12 @@ package main
 
 // Samples used in a small go tutorial
 //
+// Copyright (C) 2017 framp at linux-tips-and-tricks dot depackage main
+//
 // Modified sample blink program from https://github.com/mrmorphic/hwio/tree/master/examples
 // For more samples see https://github.com/framps/golang_tutorial
 //
-// Copyright (C) 2017 framp at linux-tips-and-tricks dot depackage main
+// See github.com/framps/golang_tutorial for latest code
 
 import (
 	"fmt"

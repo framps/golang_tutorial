@@ -4,6 +4,8 @@
 //
 // Samples for go syntax - simple REST client which calculates the geolocation, sunrise and sunset time of a location
 //
+// See github.com/framps/golang_tutorial for latest code
+//
 // Sample locations:
 // go run geoLocationSunriseSunset.go -location "Stuttgart, Königstrasse, 1"
 // Output:

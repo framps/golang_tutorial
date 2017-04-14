@@ -2,6 +2,8 @@
 //
 // Copyright (C) 2017 framp at linux-tips-and-tricks dot de
 //
+// See github.com/framps/golang_tutorial for latest code
+//
 // challenge response handling with AVM Fritz in go
 // See https://www.linux-tips-and-tricks.de/en/programming/389-read-data-from-a-fritzbox-7390-with-python-and-bash
 // for a python and bash implementation

@@ -4,6 +4,8 @@ package main
 //
 // Copyright (C) 2017 framp at linux-tips-and-tricks dot de
 //
+// See github.com/framps/golang_tutorial for latest code
+//
 // Samples for go http support - simple hello world which redirects unsecure port
 // http://localhost:8080 to https://localhost:8443. In addition a TLS certificate is
 // generated if it doesn't exist already

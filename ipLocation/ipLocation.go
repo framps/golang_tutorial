@@ -3,6 +3,8 @@
 // Copyright (C) 2017 framp at linux-tips-and-tricks dot de
 //
 // Samples for go syntax - simple REST client which returns the city the client is located from the client's IP
+//
+// See github.com/framps/golang_tutorial for latest code
 
 package main
 

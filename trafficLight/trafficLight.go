@@ -3,6 +3,8 @@
 // Copyright (C) 2017 framp at linux-tips-and-tricks dot de
 //
 // Samples for go - simple traffix light simulation using channels go go routines
+//
+// See github.com/framps/golang_tutorial for latest code
 
 package main
 

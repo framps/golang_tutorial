@@ -3,6 +3,8 @@
 // Copyright (C) 2017 framp at linux-tips-and-tricks dot de
 //
 // Samples for go funcitons, channels and mutex
+//
+// See github.com/framps/golang_tutorial for latest code
 
 // Based on and enhanced with additional functions and comments
 

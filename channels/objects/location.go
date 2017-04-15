@@ -1,6 +1,11 @@
 package objects
 
+import "sync"
+
 var locationIDCounter int
+
+// Lock -
+var Lock sync.Mutex
 
 // Location -
 type Location struct {
@@ -27,6 +32,8 @@ func (l *Location) AddFlea(f *Flea) {
 
 // JumpRight -
 func (l *Location) JumpRight(f *Flea) {
+	Lock.Lock()
+	defer Lock.Unlock()
 	n := l.Area.NextLocation(l)
 	n.Visitors[f.ID] = f
 	delete(l.Visitors, f.ID)
@@ -35,6 +42,8 @@ func (l *Location) JumpRight(f *Flea) {
 
 // JumpLeft -
 func (l *Location) JumpLeft(f *Flea) {
+	Lock.Lock()
+	defer Lock.Unlock()
 	p := l.Area.PreviousLocation(l)
 	p.Visitors[f.ID] = f
 	delete(l.Visitors, f.ID)

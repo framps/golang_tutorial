@@ -23,8 +23,16 @@ import (
 )
 
 var (
-	fleaNames = [...]string{"Hugo", "Karl", "Emil"}
+	fleaNames         = [...]string{"Hugo", "Karl", "Emil"}
+	numberOfFleas     = len(fleaNames)
+	numberOfLocations = 9
 )
+
+func startFleas(fleas []*objects.Flea) {
+	for i := 0; i < numberOfFleas; i++ {
+		fleas[i].YoureFree()
+	}
+}
 
 func startStatusReporter(area *objects.Area) {
 	timer := time.NewTimer(time.Second)
@@ -40,31 +48,23 @@ func startStatusReporter(area *objects.Area) {
 func main() {
 
 	rand.Seed(time.Now().UTC().UnixNano())
-	area := objects.NewArea()
+	area := objects.NewArea(numberOfLocations, numberOfFleas)
 
-	numberOfFleas := len(fleaNames)
-
-	commandChan := make(chan objects.FleaCommand, numberOfFleas)
 	fleas := make([]*objects.Flea, numberOfFleas)
+	pubSubCtrl := objects.PubSubController{}
 
 	// Add some fleas
 
 	for i := 0; i < numberOfFleas; i++ {
-		fleas[i] = objects.NewFlea(fleaNames[i], &area.Locations[0], commandChan)
+		fleas[i] = objects.NewFlea(fleaNames[i], &area.Locations[0])
 		area.Locations[0].AddFlea(fleas[i])
+		pubSubCtrl.Register("Listen", fleas[i].CommandChannel)
 		fmt.Printf("Adding flea %s to location %d\n", fleas[i].Name, i)
 	}
 
 	startStatusReporter(area)
 
-	go func() {
-		for {
-			for i := 0; i < numberOfFleas; i++ {
-				fleas[i].YoureFree()
-				time.Sleep(time.Millisecond * 500)
-			}
-		}
-	}()
+	startFleas(fleas)
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)

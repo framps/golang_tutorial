@@ -8,7 +8,7 @@ type (
 
 	// SubscriberEntry -
 	SubscriberEntry struct {
-		Channel chan bool
+		Channel FleaCommandChannel
 	}
 
 	// PubSubController -
@@ -18,14 +18,14 @@ type (
 )
 
 // Notify -
-func (p *PubSubController) Notify(topic string) {
+func (p *PubSubController) Notify(topic string, command FleaCommand) {
 	for _, se := range p.SubscriptionEntries[topic] {
-		se.Channel <- true
+		se.Channel <- command
 	}
 }
 
 // Register -
-func (p *PubSubController) Register(topic string, channel chan bool) {
+func (p *PubSubController) Register(topic string, channel FleaCommandChannel) {
 	r := append(
 		p.SubscriptionEntries[topic],
 		SubscriberEntry{channel})

@@ -3,23 +3,22 @@ package objects
 import (
 	"bytes"
 	"fmt"
-	"log"
+	"strings"
 	"sync"
 )
 
 // Area -
 type Area struct {
 	m         sync.Mutex
-	Locations [9]Location
+	Locations []Location
+	fleas     int
 }
 
 // NewArea -
-func NewArea() *Area {
+func NewArea(locations, fleas int) *Area {
 
-	log.Println("Creating new area")
-
-	newArea := &Area{}
-
+	newArea := &Area{fleas: fleas}
+	newArea.Locations = make([]Location, locations)
 	for i := range newArea.Locations {
 		newArea.Locations[i] = *NewLocation(newArea)
 	}
@@ -31,11 +30,13 @@ func (a *Area) String() string {
 	var result bytes.Buffer
 	result.WriteString("(")
 	for _, l := range a.Locations {
-
 		for _, v := range l.Visitors {
 			result.WriteString(fmt.Sprintf("%s", string(v.Name[0])))
 		}
-		result.WriteString(" - ")
+		if len(l.Visitors) < a.fleas {
+			result.WriteString(strings.Repeat(".", a.fleas-len(l.Visitors)))
+		}
+		result.WriteString(" <-> ")
 	}
 	result.WriteString(")")
 	return result.String()
@@ -43,12 +44,12 @@ func (a *Area) String() string {
 
 // PreviousLocation -
 func (a *Area) PreviousLocation(l *Location) *Location {
-	return &a.Locations[((l.LocationID-1)+len(a.Locations))%len(a.Locations)]
+	return &a.Locations[((l.LocationID-1)+len(a.Locations))%(len(a.Locations))]
 }
 
 // NextLocation -
 func (a *Area) NextLocation(l *Location) *Location {
-	return &a.Locations[(l.LocationID+1)%len(a.Locations)]
+	return &a.Locations[(l.LocationID+1)%(len(a.Locations))]
 }
 
 // Add - Add a flea to a location in area

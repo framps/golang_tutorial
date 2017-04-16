@@ -64,22 +64,30 @@ func handleError(err error) {
 	}
 }
 
-func retrieveChallenge() string {
+func retrieveData(sid string) {
 
-	client := &http.Client{}
-
-	req, _ := http.NewRequest("GET", targetURL+"/login_sid.lua", nil)
-	req.Header.Set("Accept", "application/xml")
-	req.Header.Set("Content-Type", "text/plain")
-	res, err := client.Do(req)
+	resp, err := http.Get(targetURL + "//internet/inetstat_counter.lua?sid=" + sid)
+	defer resp.Body.Close() // close connection at end of func
 	handleError(err)
 
-	if res.StatusCode != 200 {
-		fmt.Printf("%s %s", res.Status, res.StatusCode)
-		fmt.Printf("*** Data ***\n%v\n", res)
+	bodyBytes, _ := ioutil.ReadAll(resp.Body)
+
+	fmt.Printf("RCV: %+v\n", string(bodyBytes))
+
+}
+
+func retrieveSID() string {
+
+	resp, err := http.Get(targetURL + "/login_sid.lua")
+	defer resp.Body.Close() // close connection at end of func
+	handleError(err)
+
+	if resp.StatusCode != 200 {
+		fmt.Printf("%s %s", resp.Status, resp.StatusCode)
+		fmt.Printf("*** Data ***\n%v\n", resp)
 		os.Exit(42)
 	} else {
-		bodyBytes, _ := ioutil.ReadAll(res.Body)
+		bodyBytes, _ := ioutil.ReadAll(resp.Body)
 		fmt.Printf("Body: %+v\n", string(bodyBytes))
 
 		response := &loginResponse{}
@@ -90,40 +98,16 @@ func retrieveChallenge() string {
 
 		if response.SID == "0000000000000000" {
 
-			response.Challenge = "dd23b85f"
 			fmt.Printf("Challenge: %s\n", response.Challenge)
 
 			decode := response.Challenge + "-" + password
-			decodeRune := []rune(decode)
-			/*
-					converter := latinx.Get(latinx.ISO_8859_1)
-					// convert a stream of ISO_8859_1 bytes to UTF-8
-					utf8bytes, err := converter.Decode([]byte(decode))
-					handleError(err)
-
-					fmt.Printf("Challenge + pwd decode: %s\n", utf8bytes)
-
-					utf8Decoded := []rune{}
-					for _, r := range utf8bytes {
-						utf8Decoded = append(utf8Decoded, rune(r))
-					}
-
-					utf16Encoded := utf16.Encode(utf8Decoded)
-
-					u := make([]byte, 0)
-					for _, u16 := range utf16Encoded {
-						b := make([]byte, 2)
-						binary.BigEndian.PutUint16(b, u16)
-						u = append(u, b...)
-					}
-				fmt.Printf("Challenge + pwd decode: %x\n", u)
-			*/
+			fmt.Printf("Challenge with PWD: %s\n", decode)
 
 			hasher := md5.New()
-			hasher.Write([]byte(string(decodeRune)))
+			hasher.Write([]byte(string(decode)))
 			enc := hex.EncodeToString(hasher.Sum(nil))
 
-			fmt.Printf("M: %s\n", enc)
+			fmt.Printf("Challenge with md5sum: %s\n", enc)
 
 			response_bf := response.Challenge + "-" + enc
 
@@ -136,20 +120,20 @@ func retrieveChallenge() string {
 	return ""
 }
 
-func login(challenge string) {
-	client := &http.Client{}
+func login(sid string) {
 
-	req, _ := http.NewRequest("GET", targetURL+"/login_sid.lua&response="+challenge, nil)
-	req.Header.Set("Accept", "text/html,application/xhtml+xml,application/xml")
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	res, err := client.Do(req)
+	resp, err := http.Get(targetURL + "/login_sid.lua?&response=" + sid)
 	handleError(err)
+	defer resp.Body.Close() // close connection at end of func
 
-	if res.StatusCode != 200 {
-		fmt.Printf("%s %s", res.Status, res.StatusCode)
-		fmt.Printf("*** Data ***\n%v\n", res)
+	if resp.StatusCode != 200 {
+		fmt.Printf("%s %s", resp.Status, resp.StatusCode)
+		fmt.Printf("*** Data ***\n%v\n", resp)
 		os.Exit(42)
 	}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	fmt.Printf("Body: %s\n", body)
 
 }
 
@@ -163,9 +147,11 @@ func main() {
 		os.Exit(42)
 	}
 
-	challenge := retrieveChallenge()
-	fmt.Printf("SID: %s\n", challenge)
+	sid := retrieveSID()
+	fmt.Printf("SID: %s\n", sid)
 
-	login(challenge)
+	login(sid)
+
+	retrieveData(sid)
 
 }

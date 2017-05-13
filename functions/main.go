@@ -9,14 +9,14 @@ package main
 import (
 	"fmt"
 
-	"github.com/framps/golang_tutorial/functions/fibonacci"
+	function "github.com/framps/golang_tutorial/functions/fibonacci"
 )
 
 func main() {
 
 	// calculate fibonacci numbers, include some invalid arguments for call
-	for i := -1; i <= fibonacci.MaxFibonacci+1; i++ {
-		if value, err := fibonacci.Fibonacci(i); err != nil {
+	for i := -1; i <= function.MaxFibonacci+1; i++ {
+		if value, err := function.Fibonacci(i); err != nil {
 			fmt.Printf("Error calculating Fibonacci number of %d: %v\n", i, err)
 		} else {
 			fmt.Printf("Fibonacci number of %d is %d\n", i, value)

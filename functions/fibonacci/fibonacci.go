@@ -4,7 +4,7 @@
 //
 // amples for go syntax & packages - calculate fibonacci number via recursion
 
-package fibonacci
+package function
 
 import "fmt"
 

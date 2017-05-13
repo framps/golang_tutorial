@@ -34,7 +34,7 @@ var fibonacciTests = []struct {
 func TestFibonacci(t *testing.T) {
 	for _, tt := range fibonacciTests {
 		t.Logf("Calculating Fibonacci number for %d", tt.input)
-		actual, err := function.Fibonacci(tt.input)
+		actual, err := function.Fibonacci(tt.input, function.DefaultMax)
 		if tt.err && err == nil {
 			t.Errorf("Fibonacci(%d): expected error", tt.input)
 			continue

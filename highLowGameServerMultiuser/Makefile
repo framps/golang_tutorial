@@ -16,7 +16,10 @@ endif
 build: prepare
 	go build
 
-test: prepare build
-	echo "no tests"
+run: prepare
+	go run server.go
 
-.PHONY: install prepare build test
+deploy:
+	cf login
+	cf push
+	cf apps

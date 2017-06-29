@@ -3,7 +3,7 @@ applications:
   memory: 128M
   instances: 1
   name: highLowGameServerMultiuser
-  randomoute: true
+  host: highLowGameServerMultiuser-${random-word}
   disk_quota: 1024M
   command: highLowGameServerMultiuser
   buildpack: https://github.com/cloudfoundry/go-buildpack.git

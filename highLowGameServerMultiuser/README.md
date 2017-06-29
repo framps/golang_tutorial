@@ -1,4 +1,4 @@
-# Sample high low multiuser golang webserber
+# Sample multiuser golang webserver which provides the famous highlow game and can be run locally and deployed on Bluemix
 
 This is a small sample webserver implemented in golang which provides the famous highlow game and can be used by multiple users in parallel.
 

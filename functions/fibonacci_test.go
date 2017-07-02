@@ -3,10 +3,12 @@
 //
 // amples for go syntax & packages - calculate fibonacci number via recursion
 
-package fibonacci
+package main
 
 import (
 	"testing"
+
+	function "github.com/framps/golang_tutorial/functions/fibonacci"
 )
 
 // table drivern test - usual test pattern in go
@@ -32,7 +34,7 @@ var fibonacciTests = []struct {
 func TestFibonacci(t *testing.T) {
 	for _, tt := range fibonacciTests {
 		t.Logf("Calculating Fibonacci number for %d", tt.input)
-		actual, err := Fibonacci(tt.input)
+		actual, err := function.Fibonacci(tt.input, function.DefaultMax)
 		if tt.err && err == nil {
 			t.Errorf("Fibonacci(%d): expected error", tt.input)
 			continue

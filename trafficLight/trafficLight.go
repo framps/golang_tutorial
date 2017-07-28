@@ -13,7 +13,10 @@ import (
 	"time"
 )
 
+// enable do print debug messages
 const debug = false
+
+const enableLEDs = false
 
 // lamp colors
 const (
@@ -23,13 +26,21 @@ const (
 	redyellow
 )
 
-// ascii representation of phase lamps (Green, Yellow, Red, )
+// ascii representation of phase lamps (Green, Yellow, Red, Read and Yellow )
 var phaseString = []string{". . G", ". Y .", "R . .", "R Y ."}
 
-// Phase --
+var t1LEDs = LEDs{[...]int{11, 12, 13}}
+var t2LEDs = LEDs{[...]int{23, 24, 25}}
+
+// LEDs - LED pin numbers for lights of one traffic light
+type LEDs struct {
+	pin [3]int // red, yellow, green
+}
+
+// Phase consists of lights and number of ticks to flash the linghts
 type Phase struct {
-	Lamps int
-	Ticks int
+	Lights int
+	Ticks  int
 }
 
 // Program - Has phases and a state (active phase)
@@ -38,7 +49,7 @@ type Program struct {
 	state  int
 }
 
-// NormalProgram -
+// NormalProgram - Just the common traffic light
 var NormalProgram = Program{
 	Phases: []Phase{
 		Phase{green, 3},
@@ -53,22 +64,35 @@ type TrafficLight struct {
 	name    string         // name
 	ticks   int            // ticks received
 	program *Program       // program to execute
+	leds    LEDs           // LEDs to use
 	c       *chan struct{} // tick channel to liston on
 }
 
 // NewTrafficLight -- Create a new trafficlight
-func NewTrafficLight(name string, startPhase int, program Program, c *chan struct{}) (t *TrafficLight) {
-	t = &TrafficLight{name, 0, &program, c}
+func NewTrafficLight(name string, startPhase int, program Program, c *chan struct{}, leds LEDs) (t *TrafficLight) {
+	t = &TrafficLight{name, 0, &program, leds, c}
 	program.state = startPhase
 	return t
 }
 
-// Implement Stringer interface
+// Implement Stringer interface to display a readable form of the traffic light
 func (t *TrafficLight) String() string {
-	return fmt.Sprintf("%v: %v", t.name, phaseString[t.program.Phases[t.program.state].Lamps])
+	return fmt.Sprintf("%v: %v", t.name, phaseString[t.program.Phases[t.program.state].Lights])
 }
 
-// Run --
+// FlashLEDs -
+func (t *TrafficLight) FlashLEDs() {
+	l := phaseString[t.program.Phases[t.program.state].Lights]
+	for i := 0; i < len(l); i += 2 {
+		if l[i] == byte('.') {
+			fmt.Printf("off %d ", t.leds.pin[i/2])
+		} else {
+			fmt.Printf("on %d ", t.leds.pin[i/2])
+		}
+	}
+}
+
+// Run - run traffic light program
 func (t *TrafficLight) Run() {
 
 	for {
@@ -85,7 +109,10 @@ func (t *TrafficLight) Advance() {
 	if t.ticks++; t.ticks >= t.program.Phases[t.program.state].Ticks {
 		t.program.state = (t.program.state + 1) % len(t.program.Phases)
 		t.ticks = 0
-		fmt.Printf("%v\n", t)
+	}
+	fmt.Printf("%v ", t)
+	if enableLEDs {
+		t.FlashLEDs()
 	}
 }
 
@@ -101,8 +128,8 @@ func main() {
 	tick1 := make(chan struct{})
 	tick2 := make(chan struct{})
 
-	trafficLight1 := NewTrafficLight("Trafficlight1", 1, NormalProgram, &tick1)
-	trafficLight2 := NewTrafficLight("Trafficlight2", 3, NormalProgram, &tick2)
+	trafficLight1 := NewTrafficLight("T1", 1, NormalProgram, &tick1, t1LEDs)
+	trafficLight2 := NewTrafficLight("T2", 3, NormalProgram, &tick2, t2LEDs)
 
 	trafficLights := []*TrafficLight{trafficLight1, trafficLight2}
 
@@ -115,6 +142,7 @@ func main() {
 		for i := range trafficLights {
 			*trafficLights[i].c <- struct{}{} // send new tick
 		}
+		fmt.Println()
 		time.Sleep(time.Second * 1)
 	}
 }

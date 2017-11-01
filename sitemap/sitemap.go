@@ -7,7 +7,10 @@
 // See github.com/framps/golang_tutorial for latest code
 //
 // This code is based on https://github.com/adonovan/gopl.io/blob/master/ch8/crawl3/findlinks.go
-// and was enhanced by a parse termination condition and parsing only happens on the base url
+// and was enhanced by
+// 1. a parse termination condition
+// 2. remote urls are skipped
+// 3. additional messages for better understanding of the crawl logic
 
 // Copyright © 2016 Alan A. A. Donovan & Brian W. Kernighan.
 // License: https://creativecommons.org/licenses/by-nc-sa/4.0/
@@ -34,15 +37,15 @@ import (
 	"github.com/framps/golang_tutorial/sitemap/links"
 )
 
-const maxWorkers = 20
+const maxWorkers = 20                   // number of crawl workers
 const lastSeenTimeout = time.Second * 3 // timeout for workers when there is no more work
 
 var (
-	matchFile  *os.File
-	rejectFile *os.File
+	matchFile  *os.File // receives list of domain urls
+	rejectFile *os.File // receives list of skipped urls and the skip reason
 )
 
-var matches, fails int
+var matches, fails int // counter for matched and skipped urls
 
 // filter urls via a regex
 func isValid(u *url.URL) bool {
@@ -53,7 +56,7 @@ func isValid(u *url.URL) bool {
 	if len(u.Query()) > 0 { // no query allowed
 		return false
 	}
-	re := regexp.MustCompile(`(?i).*(\.(html|jpg|jpeg|mp4|htm|pdf|sql))?$`)
+	re := regexp.MustCompile(`(?i).*(\.(htm(l)?|jp(e)?g|mp4|pdf|sql))?$`)
 	m := re.MatchString(u.Path)
 	if m {
 		matchFile.WriteString(u.String() + "\n")

@@ -118,18 +118,19 @@ func main() {
 
 	var activeWorkers sync.WaitGroup // waitgroup for active workers
 
-	matchFile, err := os.Create("sitemap.match")
-	if err != nil {
-		panic(err)
+	var e error
+	matchFile, e = os.Create("sitemap.match")
+	if e != nil {
+		panic(e)
 	}
 	defer func() {
 		fmt.Println("Closing matchfile")
 		matchFile.Close()
 	}()
 
-	rejectFile, err = os.Create("sitemap.reject")
-	if err != nil {
-		panic(err)
+	rejectFile, e = os.Create("sitemap.reject")
+	if e != nil {
+		panic(e)
 	}
 	defer func() {
 		fmt.Println("Closing rejectfile")

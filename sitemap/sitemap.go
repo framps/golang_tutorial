@@ -30,7 +30,6 @@ import (
 	"os"
 	"os/signal"
 	"regexp"
-	"strings"
 	"sync"
 	"time"
 
@@ -68,8 +67,6 @@ func isValid(u *url.URL) bool {
 // crawl urls
 func crawl(nr int, parseURL string, sourceURLs []string) []string {
 
-	fmt.Printf("%2d: Crawling %s\n", nr, parseURL)
-
 	pu, err := url.Parse(parseURL)
 	if err != nil {
 		m := fmt.Sprintf("%2d: ??? URL parse error %s for %s\n", nr, err, parseURL)
@@ -87,7 +84,7 @@ func crawl(nr int, parseURL string, sourceURLs []string) []string {
 				rejectFile.WriteString(m)
 				return []string{}
 			}
-			if !strings.Contains(pu.String(), su.Hostname()) {
+			if pu.Hostname() != su.Hostname() || pu.Scheme != su.Scheme {
 				m := fmt.Sprintf("%2d: --- Remote URL %s\n", nr, parseURL)
 				fails++
 				rejectFile.WriteString(m)
@@ -101,6 +98,8 @@ func crawl(nr int, parseURL string, sourceURLs []string) []string {
 			}
 		}
 	}
+
+	fmt.Printf("%2d: Crawling %s\n", nr, parseURL)
 	list, err := links.Extract(parseURL)
 
 	if err != nil {
@@ -173,6 +172,7 @@ func main() {
 				case <-time.After(lastSeenTimeout): // timer will expire if there is no more work to do
 					fmt.Printf("%2d: Worker idle for %s and now terminating\n", nr, lastSeenTimeout)
 					activeWorkers.Done()
+					break
 				}
 			}
 		}(i)

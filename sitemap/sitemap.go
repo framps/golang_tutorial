@@ -30,7 +30,6 @@ import (
 	"os"
 	"os/signal"
 	"regexp"
-	"strings"
 	"sync"
 	"time"
 
@@ -68,8 +67,6 @@ func isValid(u *url.URL) bool {
 // crawl urls
 func crawl(nr int, parseURL string, sourceURLs []string) []string {
 
-	fmt.Printf("%2d: Crawling %s\n", nr, parseURL)
-
 	pu, err := url.Parse(parseURL)
 	if err != nil {
 		m := fmt.Sprintf("%2d: ??? URL parse error %s for %s\n", nr, err, parseURL)
@@ -87,7 +84,7 @@ func crawl(nr int, parseURL string, sourceURLs []string) []string {
 				rejectFile.WriteString(m)
 				return []string{}
 			}
-			if !strings.Contains(pu.String(), su.Hostname()) {
+			if pu.Hostname() != su.Hostname() || pu.Scheme != su.Scheme {
 				m := fmt.Sprintf("%2d: --- Remote URL %s\n", nr, parseURL)
 				fails++
 				rejectFile.WriteString(m)
@@ -101,6 +98,8 @@ func crawl(nr int, parseURL string, sourceURLs []string) []string {
 			}
 		}
 	}
+
+	fmt.Printf("%2d: Crawling %s\n", nr, parseURL)
 	list, err := links.Extract(parseURL)
 
 	if err != nil {
@@ -117,6 +116,7 @@ func crawl(nr int, parseURL string, sourceURLs []string) []string {
 func main() {
 
 	var activeWorkers sync.WaitGroup // waitgroup for active workers
+	abort := make(chan bool, 1)      // channel to signal abort to worker
 
 	var e error
 	matchFile, e = os.Create("sitemap.match")
@@ -141,11 +141,9 @@ func main() {
 	signal.Notify(signalChan, os.Interrupt)
 	go func() {
 		for _ = range signalChan {
+			close(abort)
 			fmt.Println("\nReceived an interrupt, stopping ...")
-			rejectFile.Close()
-			matchFile.Close()
-			fmt.Printf("Found pages: %d\nSkipped pages: %d\n", matches, fails)
-			os.Exit(1)
+			activeWorkers.Wait()
 		}
 	}()
 
@@ -162,7 +160,7 @@ func main() {
 	activeWorkers.Add(maxWorkers)
 	// Create crawler goroutines to fetch each unseen link.
 	for i := 0; i < maxWorkers; i++ {
-		go func(nr int) {
+		go func(nr int, abort chan bool) {
 			for {
 				select {
 				case link := <-unseenLinks:
@@ -173,9 +171,14 @@ func main() {
 				case <-time.After(lastSeenTimeout): // timer will expire if there is no more work to do
 					fmt.Printf("%2d: Worker idle for %s and now terminating\n", nr, lastSeenTimeout)
 					activeWorkers.Done()
+					return
+				case <-abort:
+					fmt.Printf("%2d: Worker aborted and now terminating\n", nr)
+					activeWorkers.Done()
+					return
 				}
 			}
-		}(i)
+		}(i, abort)
 	}
 
 	// de-duplicates worklist items
@@ -195,4 +198,6 @@ func main() {
 	fmt.Printf("Waiting for %d workers to finish ...\n", maxWorkers)
 	activeWorkers.Wait()
 	fmt.Printf("Found pages: %d\nSkipped pages: %d\n", matches, fails)
+	rejectFile.Close()
+	matchFile.Close()
 }

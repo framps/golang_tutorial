@@ -49,7 +49,7 @@ func handleError(err error) {
 
 func retrieveData(target, url, sid string) []byte {
 
-	fmt.Printf("Retrieving data from %s ...\n", target+url)
+	fmt.Printf("Retrieving statistic data from %s ...\n", target)
 
 	endpoint := target + url + "?sid=" + sid
 	resp, err := http.Get(endpoint)
@@ -65,8 +65,6 @@ func retrieveData(target, url, sid string) []byte {
 
 func createChallengeResponse(server, password string) string {
 
-	fmt.Printf("Retrieving ChallengeResponse ... ")
-
 	resp, err := http.Get("http://" + hostname + "/login_sid.lua")
 	handleError(err)
 	defer resp.Body.Close()
@@ -78,8 +76,8 @@ func createChallengeResponse(server, password string) string {
 	bodyBytes, err := ioutil.ReadAll(resp.Body)
 	handleError(err)
 
-	response := &loginResponse{}
-	err = xml.Unmarshal(bodyBytes, response)
+	var response loginResponse
+	err = xml.Unmarshal(bodyBytes, &response)
 	handleError(err)
 
 	var zeroSID = regexp.MustCompile(`^0+$`)
@@ -101,7 +99,6 @@ func createChallengeResponse(server, password string) string {
 		enc := hex.EncodeToString(hasher.Sum(nil))
 		responseBf := response.Challenge + "-" + enc
 
-		fmt.Printf("%s\n", string(responseBf))
 		return string(responseBf)
 
 	}
@@ -119,7 +116,6 @@ func createChallengeResponse(server, password string) string {
 
 func retrieveSID(targetURL, responseBf string) string {
 
-	fmt.Printf("Retrieving SID ... ")
 	resp, err := http.Get(targetURL + "/login_sid.lua?&response=" + responseBf)
 	handleError(err)
 	defer resp.Body.Close() // close connection at end of func
@@ -136,7 +132,6 @@ func retrieveSID(targetURL, responseBf string) string {
 	err = xml.Unmarshal(body, response)
 	handleError(err)
 
-	fmt.Printf("%s\n", response.SID)
 	return response.SID
 
 }
@@ -149,6 +144,7 @@ func main() {
 		fmt.Println("Environment variable FRITZ_HOSTNAME and/or FRITZ_PASSWORD not set")
 		os.Exit(1)
 	}
+
 	fritzURL = "http://" + hostname
 
 	responseBf := createChallengeResponse(fritzURL, password)

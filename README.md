@@ -1,6 +1,6 @@
 # Some go sample files for a small go tutorial
 
-All samples can be run on a Raspberry Pi and all run on any system with one exception: trafficLight uses GPIOs which are available on a Raspberry Pi only.
+All samples can be run on a Raspberry Pi or any other Linux system with one exception: trafficLight uses GPIOs which are available on a Raspberry Pi only.
 
 1. blinkAllLEDs - Sample which turns on and off LEDs connected to RaspberryPi GPIOs
 2. functions - Sample for go functions

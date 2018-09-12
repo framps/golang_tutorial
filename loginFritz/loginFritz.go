@@ -1,11 +1,11 @@
 // Samples used in a small go tutorial
 //
-// Copyright (C) 2017 framp at linux-tips-and-tricks dot de
+// Copyright (C) 2017,2018 framp at linux-tips-and-tricks dot de
 //
 // See github.com/framps/golang_tutorial for latest code
 //
 // Logon to AVM Fritz and challenge response handling in go
-// This sample code retrieves the byte counters
+// This sample code retrieves AVM byte counters
 //
 // See https://www.linux-tips-and-tricks.de/en/programming/389-read-data-from-a-fritzbox-7390-with-python-and-bash
 // for a python and bash implementation
@@ -19,6 +19,7 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"encoding/xml"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -34,6 +35,8 @@ var (
 	fritzURL string
 )
 
+var verbose *bool
+
 type loginResponse struct {
 	SID       string
 	Challenge string
@@ -43,13 +46,21 @@ type loginResponse struct {
 
 func handleError(err error) {
 	if err != nil {
-		panic(err)
+		fmt.Printf("ERROR OCCURED: %s\n", err.Error())
+		os.Exit(42)
+	}
+}
+
+func info(format string, a ...interface{}) {
+	if *verbose {
+		fmt.Printf("INFO: ")
+		fmt.Printf(format, a...)
 	}
 }
 
 func retrieveData(target, url, sid string) []byte {
 
-	fmt.Printf("Retrieving statistic data from %s ...\n", target)
+	info("Retrieving statistic data from %s ...\n", target)
 
 	endpoint := target + url + "?sid=" + sid
 	resp, err := http.Get(endpoint)
@@ -80,6 +91,7 @@ func createChallengeResponse(server, password string) string {
 	err = xml.Unmarshal(bodyBytes, &response)
 	handleError(err)
 
+	info("Challenge response received: %#v\n", response)
 	var zeroSID = regexp.MustCompile(`^0+$`)
 	if zeroSID.MatchString(response.SID) {
 
@@ -132,11 +144,22 @@ func retrieveSID(targetURL, responseBf string) string {
 	err = xml.Unmarshal(body, response)
 	handleError(err)
 
+	info("Login response received: %#v\n", response)
+
+	var zeroSID = regexp.MustCompile(`^0+$`)
+	if zeroSID.MatchString(response.SID) {
+		err = fmt.Errorf("Invalid login credentials")
+		handleError(err)
+	}
 	return response.SID
 
 }
 
 func main() {
+
+	verbose = flag.Bool("verbose", false, "Write info messages")
+
+	flag.Parse()
 
 	hostname = os.Getenv("FRITZ_HOSTNAME")
 	password = os.Getenv("FRITZ_PASSWORD")

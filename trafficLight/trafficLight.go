@@ -1,8 +1,8 @@
 // Samples used in a small go tutorial
 //
-// Copyright (C) 2017 framp at linux-tips-and-tricks dot de
+// Copyright (C) 2017,2018 framp at linux-tips-and-tricks dot de
 //
-// Samples for go - simple traffix light simulation using channels go go routines
+// Samples for go - simple trafficlight simulation using go channels and go routines
 //
 // See github.com/framps/golang_tutorial for latest code
 
@@ -20,24 +20,27 @@ const enableLEDs = false
 
 // lamp colors
 const (
-	green = iota
+	off = iota
+	green
 	yellow
 	red
 	redyellow
 )
 
 // ascii representation of phase lamps (Green, Yellow, Red, Read and Yellow )
-var phaseString = []string{". . G", ". Y .", "R . .", "R Y ."}
+var phaseString = []string{". . .", ". . G", ". Y .", "R . .", "R Y ."}
 
 var t1LEDs = LEDs{[...]int{11, 12, 13}}
-var t2LEDs = LEDs{[...]int{23, 24, 25}}
+var t2LEDs = LEDs{[...]int{21, 22, 23}}
+var t3LEDs = LEDs{[...]int{31, 32, 33}}
+var t4LEDs = LEDs{[...]int{41, 42, 43}}
 
 // LEDs - LED pin numbers for lights of one traffic light
 type LEDs struct {
 	pin [3]int // red, yellow, green
 }
 
-// Phase consists of lights and number of ticks to flash the linghts
+// Phase consists of light and number of ticks to flash the lights
 type Phase struct {
 	Lights int
 	Ticks  int
@@ -47,6 +50,28 @@ type Phase struct {
 type Program struct {
 	Phases []Phase
 	state  int
+}
+
+// TestProgram - Turn every lamp on
+var TestProgram = Program{
+	Phases: []Phase{
+		Phase{red, 1},
+		Phase{yellow, 1},
+		Phase{green, 1},
+		Phase{off, 1},
+		Phase{green, 1},
+		Phase{yellow, 1},
+		Phase{red, 1},
+		Phase{off, 1},
+	},
+}
+
+// WarningProgram - Traffic light is not working, just blink
+var WarningProgram = Program{
+	Phases: []Phase{
+		Phase{yellow, 1},
+		Phase{off, 1},
+	},
 }
 
 // NormalProgram - Just the common traffic light
@@ -59,25 +84,102 @@ var NormalProgram = Program{
 	},
 }
 
+// TrafficManager -
+type TrafficManager struct {
+	trafficLights []TrafficLight
+}
+
+// NewTrafficManager -
+func NewTrafficManager(trafficLights []TrafficLight) *TrafficManager {
+	tm := &TrafficManager{trafficLights: trafficLights}
+	return tm
+}
+
+// Test -
+func (tm *TrafficManager) Test() {
+	var flip bool
+	for i := range tm.trafficLights {
+		if flip {
+			tm.trafficLights[i].Load(5, TestProgram)
+		} else {
+			tm.trafficLights[i].Load(1, TestProgram)
+		}
+		flip = !flip
+	}
+}
+
+// Start -
+func (tm *TrafficManager) Start() {
+	var flip bool
+	for i := range tm.trafficLights {
+		if flip {
+			tm.trafficLights[i].Load(3, NormalProgram)
+		} else {
+			tm.trafficLights[i].Load(1, NormalProgram)
+		}
+		flip = !flip
+	}
+}
+
+// On -
+func (tm *TrafficManager) On() {
+
+	d := make(chan int)
+
+	go func(update chan int) {
+		var cnt int
+		for {
+			<-update
+			cnt++
+			if cnt >= len(tm.trafficLights) {
+				for i := range tm.trafficLights {
+					fmt.Printf("%s   ", tm.trafficLights[i].String())
+				}
+				fmt.Println()
+				cnt = 0
+			}
+		}
+	}(d)
+
+	// start all trafficlights to run parallel as a go routine
+	for i := range tm.trafficLights {
+		go tm.trafficLights[i].Run(d)
+	}
+
+	for {
+		for i := range tm.trafficLights {
+			tm.trafficLights[i].c <- struct{}{} // send new tick
+		}
+		time.Sleep(time.Second * 1)
+	}
+}
+
 // TrafficLight -
 type TrafficLight struct {
-	name    string         // name
-	ticks   int            // ticks received
-	program *Program       // program to execute
-	leds    LEDs           // LEDs to use
-	c       *chan struct{} // tick channel to liston on
+	number  int           // light number
+	ticks   int           // ticks received
+	program Program       // program to execute
+	leds    LEDs          // LEDs to use
+	c       chan struct{} // tick channel to liston on
 }
 
 // NewTrafficLight -- Create a new trafficlight
-func NewTrafficLight(name string, startPhase int, program Program, c *chan struct{}, leds LEDs) (t *TrafficLight) {
-	t = &TrafficLight{name, 0, &program, leds, c}
-	program.state = startPhase
+func NewTrafficLight(number int, leds LEDs) (t *TrafficLight) {
+	c := make(chan struct{})
+	t = &TrafficLight{number, 0, WarningProgram, leds, c}
+	t.program.state = 1
 	return t
+}
+
+// Load -
+func (t *TrafficLight) Load(startPhase int, program Program) {
+	t.program = program
+	t.program.state = startPhase
 }
 
 // Implement Stringer interface to display a readable form of the traffic light
 func (t *TrafficLight) String() string {
-	return fmt.Sprintf("%v: %v", t.name, phaseString[t.program.Phases[t.program.state].Lights])
+	return fmt.Sprintf("<%d>: %s |", t.number, phaseString[t.program.Phases[t.program.state].Lights])
 }
 
 // FlashLEDs -
@@ -93,24 +195,25 @@ func (t *TrafficLight) FlashLEDs() {
 }
 
 // Run - run traffic light program
-func (t *TrafficLight) Run() {
+func (t *TrafficLight) Run(callBack chan int) {
 
 	for {
-		debugMessage("%s: Waiting ...\n", t.name)
-		<-*t.c // wait for tick
-		debugMessage("%s: Advancing ...\n", t.name)
+		debugMessage("%v: Waiting ...\n", t.number)
+		<-t.c // wait for tick
+		debugMessage("%v: Advancing ...\n", t.number)
 		t.Advance() // next trafficlight phase
+		callBack <- t.number
 	}
 }
 
 // Advance -- Advances a trafficlight to next phase
 func (t *TrafficLight) Advance() {
-	debugMessage("%s: Got tick\n", t.name)
+	debugMessage("%v: Got tick\n", t.number)
 	if t.ticks++; t.ticks >= t.program.Phases[t.program.state].Ticks {
+		debugMessage("%v: Next phase\n", t.number)
 		t.program.state = (t.program.state + 1) % len(t.program.Phases)
 		t.ticks = 0
 	}
-	fmt.Printf("%v ", t)
 	if enableLEDs {
 		t.FlashLEDs()
 	}
@@ -125,24 +228,22 @@ func debugMessage(f string, p ...interface{}) {
 
 func main() {
 
-	tick1 := make(chan struct{})
-	tick2 := make(chan struct{})
+	trafficLight1 := NewTrafficLight(0, t1LEDs)
+	trafficLight2 := NewTrafficLight(1, t2LEDs)
+	trafficLight3 := NewTrafficLight(2, t3LEDs)
+	trafficLight4 := NewTrafficLight(3, t4LEDs)
 
-	trafficLight1 := NewTrafficLight("T1", 1, NormalProgram, &tick1, t1LEDs)
-	trafficLight2 := NewTrafficLight("T2", 3, NormalProgram, &tick2, t2LEDs)
+	trafficLights := []TrafficLight{*trafficLight1, *trafficLight2, *trafficLight3, *trafficLight4}
 
-	trafficLights := []*TrafficLight{trafficLight1, trafficLight2}
+	tm := NewTrafficManager(trafficLights)
 
-	// start all trafficlights to run parallel as a go routine
-	for i := range trafficLights {
-		go trafficLights[i].Run()
-	}
+	go func() {
+		time.Sleep(time.Second * 10)
+		tm.Test()
+		time.Sleep(time.Second * 10)
+		tm.Start()
+	}()
 
-	for {
-		for i := range trafficLights {
-			*trafficLights[i].c <- struct{}{} // send new tick
-		}
-		fmt.Println()
-		time.Sleep(time.Second * 1)
-	}
+	tm.On()
+
 }

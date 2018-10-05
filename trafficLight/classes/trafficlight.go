@@ -1,6 +1,10 @@
-package trafficlight
+package classes
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/framps/golang_tutorial/trafficLight/constants"
+)
 
 // TrafficLight -
 type TrafficLight struct {
@@ -27,12 +31,12 @@ func (t *TrafficLight) Load(startPhase int, program Program) {
 
 // Implement Stringer interface to display a readable form of the traffic light
 func (t *TrafficLight) String() string {
-	return fmt.Sprintf("<%d>: %s |", t.number, phaseString[t.program.Phases[t.program.state].Lights])
+	return fmt.Sprintf("<%d>: %s |", t.number, constants.PhaseString[t.program.Phases[t.program.state].Lights])
 }
 
 // FlashLEDs -
 func (t *TrafficLight) FlashLEDs() {
-	l := phaseString[t.program.Phases[t.program.state].Lights]
+	l := constants.PhaseString[t.program.Phases[t.program.state].Lights]
 	for i := 0; i < len(l); i += 2 {
 		if l[i] == byte('.') {
 			fmt.Printf("off %d ", t.leds.pin[i/2])

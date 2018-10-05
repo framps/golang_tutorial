@@ -1,9 +1,11 @@
-package trafficmanager
+package classes
 
 import (
 	"fmt"
 	"sync"
 	"time"
+
+	"github.com/framps/golang_tutorial/trafficLight/globals"
 )
 
 // TrafficManager -
@@ -55,14 +57,14 @@ func (tm *TrafficManager) On(wg *sync.WaitGroup) {
 			cnt++
 			if cnt >= len(tm.trafficLights) {
 				for i := range tm.trafficLights {
-					if monitor {
+					if globals.Monitor {
 						fmt.Printf("%s   ", tm.trafficLights[i].String())
 					}
-					if enableLEDs {
+					if globals.EnableLEDs {
 						tm.trafficLights[i].FlashLEDs()
 					}
 				}
-				if monitor {
+				if globals.Monitor {
 					fmt.Println()
 				}
 				cnt = 0

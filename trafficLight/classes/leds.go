@@ -8,25 +8,28 @@ import (
 	rpio "github.com/stianeikeland/go-rpio"
 )
 
-// LEDs - LED pin numbers for lights of one traffic light
+// LEDs - LED GPIO numbers for lights of one traffic light
 type LEDs struct {
 	Pin [3]int // red, yellow, green
 }
 
+// map GPIO numbers to BCM GPIO numbers
+//                     0   1   2   3   4   5   6   7
+var gpio2bcm = [8]int{17, 18, 27, 22, 23, 24, 25, 4}
+
 type LEDController struct {
 	enabled bool
-	pins    [8]int
 }
 
-func NewLEDController(pins [8]int) *LEDController {
-	l := &LEDController{pins: pins, enabled: globals.EnableLEDs}
+func NewLEDController() *LEDController {
+	l := &LEDController{enabled: globals.EnableLEDs}
 	l.Open()
 	return l
 }
 
 func (l *LEDController) ClearAll() {
 	if l.enabled {
-		for _, p := range l.pins {
+		for _, p := range gpio2bcm {
 			pin := rpio.Pin(p)
 			pin.Output()
 			pin.Low()
@@ -52,13 +55,13 @@ func (l *LEDController) Close() {
 }
 
 func (l *LEDController) On(gpio int) {
-	pin := rpio.Pin(l.pins[gpio])
+	pin := rpio.Pin(gpio2bcm[gpio])
 	pin.Output()
 	pin.High()
 }
 
 func (l *LEDController) Off(gpio int) {
-	pin := rpio.Pin(l.pins[gpio])
+	pin := rpio.Pin(gpio2bcm[gpio])
 	pin.Output()
 	pin.Low()
 }

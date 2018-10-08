@@ -13,6 +13,7 @@ import (
 	"os"
 	"os/signal"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/framps/golang_tutorial/trafficLight/classes"
@@ -20,10 +21,6 @@ import (
 )
 
 func main() {
-
-	// map GPIO numbers to BCM GPIO numbers
-	//                     0   1   2   3   4   5   6   7
-	var gpio2bcm = [8]int{17, 18, 27, 22, 23, 24, 25, 4}
 
 	// GPIOs: red, yellow, green
 	var (
@@ -41,15 +38,15 @@ func main() {
 	trafficLight2 := classes.NewTrafficLight(1, T2LEDs)
 	trafficLights := []*classes.TrafficLight{trafficLight1, trafficLight2}
 
-	lc := classes.NewLEDController(gpio2bcm)
+	lc := classes.NewLEDController()
 	tm := classes.NewTrafficManager(trafficLights, lc)
 
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt)
+	c := make(chan os.Signal)
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 	go func() {
 		<-c
 		lc.Close()
-		os.Exit(0)
+		os.Exit(1)
 	}()
 
 	var wg sync.WaitGroup

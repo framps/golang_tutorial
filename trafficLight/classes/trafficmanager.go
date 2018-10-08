@@ -11,11 +11,12 @@ import (
 // TrafficManager -
 type TrafficManager struct {
 	trafficLights []*TrafficLight
+	lc            *LEDController
 }
 
 // NewTrafficManager -
-func NewTrafficManager(trafficLights []*TrafficLight) *TrafficManager {
-	tm := &TrafficManager{trafficLights: trafficLights}
+func NewTrafficManager(trafficLights []*TrafficLight, ledController *LEDController) *TrafficManager {
+	tm := &TrafficManager{trafficLights: trafficLights, lc: ledController}
 	return tm
 }
 
@@ -61,7 +62,7 @@ func (tm *TrafficManager) On(wg *sync.WaitGroup) {
 						fmt.Printf("%s   ", tm.trafficLights[i].String())
 					}
 					if globals.EnableLEDs {
-						tm.trafficLights[i].FlashLEDs()
+						tm.trafficLights[i].FlashLEDs(tm.lc)
 					}
 				}
 				if globals.Monitor {

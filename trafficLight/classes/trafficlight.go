@@ -35,13 +35,13 @@ func (t *TrafficLight) String() string {
 }
 
 // FlashLEDs -
-func (t *TrafficLight) FlashLEDs() {
+func (t *TrafficLight) FlashLEDs(lightController *LEDController) {
 	l := constants.PhaseString[t.program.Phases[t.program.state].Lights]
 	for i := 0; i < len(l); i += 2 {
 		if l[i] == byte('.') {
-			fmt.Printf("off %d ", t.leds.pin[i/2])
+			lightController.Off(t.leds.Pin[i/2])
 		} else {
-			fmt.Printf("on %d ", t.leds.pin[i/2])
+			lightController.On(t.leds.Pin[i/2])
 		}
 	}
 }

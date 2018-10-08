@@ -10,17 +10,26 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"os"
+	"os/signal"
 	"sync"
 	"time"
 
 	"github.com/framps/golang_tutorial/trafficLight/classes"
 	"github.com/framps/golang_tutorial/trafficLight/globals"
-	rpio "github.com/stianeikeland/go-rpio"
 )
 
 func main() {
+
+	// map GPIO numbers to BCM GPIO numbers
+	//                     0   1   2   3   4   5   6   7
+	var gpio2bcm = [8]int{17, 18, 27, 22, 23, 24, 25, 4}
+
+	// GPIOs: red, yellow, green
+	var (
+		T1LEDs = classes.LEDs{[...]int{2, 3, 4}}
+		T2LEDs = classes.LEDs{[...]int{5, 6, 7}}
+	)
 
 	flag.BoolVar(&globals.Debug, "debug", false, "Write debug messages")
 	flag.BoolVar(&globals.Monitor, "monitor", true, "Monitor LEDs on screen")
@@ -28,20 +37,20 @@ func main() {
 
 	flag.Parse()
 
-	if globals.EnableLEDs {
-		err := rpio.Open()
-		if err != nil {
-			fmt.Printf("Error accessing GPIO: %s\n", err.Error())
-			os.Exit(42)
-		}
-	}
-
-	trafficLight1 := classes.NewTrafficLight(0, classes.T1LEDs)
-	trafficLight2 := classes.NewTrafficLight(1, classes.T2LEDs)
-
+	trafficLight1 := classes.NewTrafficLight(0, T1LEDs)
+	trafficLight2 := classes.NewTrafficLight(1, T2LEDs)
 	trafficLights := []*classes.TrafficLight{trafficLight1, trafficLight2}
 
-	tm := classes.NewTrafficManager(trafficLights)
+	lc := classes.NewLEDController(gpio2bcm)
+	tm := classes.NewTrafficManager(trafficLights, lc)
+
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+	go func() {
+		<-c
+		lc.Close()
+		os.Exit(0)
+	}()
 
 	var wg sync.WaitGroup
 	wg.Add(1)

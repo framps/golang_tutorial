@@ -18,13 +18,13 @@ type TrafficLight struct {
 // NewTrafficLight -- Create a new trafficlight
 func NewTrafficLight(number int, leds LEDs) (t *TrafficLight) {
 	c := make(chan struct{})
-	t = &TrafficLight{number: number, ticks: 0, program: WarningProgram, leds: leds, c: c}
+	t = &TrafficLight{number: number, ticks: 0, program: ProgramWarning, leds: leds, c: c}
 	t.program.state = 1
 	return t
 }
 
 // Load -
-func (t *TrafficLight) Load(startPhase int, program Program) {
+func (t *TrafficLight) Load(startPhase int, program *Program) {
 	t.program = program
 	t.program.state = startPhase
 }

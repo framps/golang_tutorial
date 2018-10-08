@@ -38,7 +38,7 @@ func main() {
 	trafficLights := []*classes.TrafficLight{trafficLight1, trafficLight2}
 
 	lc := classes.NewLEDController()
-	tm := classes.NewTrafficManager(trafficLights, lc, &classes.NormalProgram)
+	tm := classes.NewTrafficManager(trafficLights, lc)
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
@@ -52,11 +52,12 @@ func main() {
 
 	for {
 		time.Sleep(time.Second * 5)
-		tm.TestMode()
+		tm.StartProgram(classes.ProgramTest)
 		time.Sleep(time.Second * 5)
-		tm.Start()
-		time.Sleep(time.Second * 10)
-		tm.WarningMode()
+		tm.StartProgram(classes.ProgramNormal)
+		time.Sleep(time.Second * 30)
+		tm.StartProgram(classes.ProgramWarning)
+
 	}
 
 }

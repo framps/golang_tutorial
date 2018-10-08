@@ -24,8 +24,8 @@ type Program struct {
 	clockSpeed time.Duration
 }
 
-// TestProgram - Turn every lamp on
-var TestProgram = Program{
+// ProgramTest - Turn every lamp on
+var ProgramTest = &Program{
 	Phases: []Phase{
 		Phase{red, 1},
 		Phase{yellow, 1},
@@ -35,8 +35,8 @@ var TestProgram = Program{
 	clockSpeed: time.Millisecond * 100,
 }
 
-// WarningProgram - Traffic light is not working, just blink
-var WarningProgram = Program{
+// ProgramWarning - Traffic light is not working, just blink
+var ProgramWarning = &Program{
 	Phases: []Phase{
 		Phase{yellow, 1},
 		Phase{off, 1},
@@ -44,8 +44,8 @@ var WarningProgram = Program{
 	clockSpeed: time.Millisecond * 500,
 }
 
-// NormalProgram - Just the common traffic light
-var NormalProgram = Program{
+// ProgramNormal - Just the common traffic light
+var ProgramNormal = &Program{
 	Phases: []Phase{
 		Phase{green, 3},
 		Phase{yellow, 1},

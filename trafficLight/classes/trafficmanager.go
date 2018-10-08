@@ -11,55 +11,23 @@ import (
 type TrafficManager struct {
 	trafficLights []*TrafficLight
 	lc            *LEDController
-	program       Program
+	program       *Program
 }
 
 // NewTrafficManager -
-func NewTrafficManager(trafficLights []*TrafficLight, ledController *LEDController, program *Program) *TrafficManager {
+func NewTrafficManager(trafficLights []*TrafficLight, ledController *LEDController) *TrafficManager {
 	tm := &TrafficManager{trafficLights: trafficLights, lc: ledController}
-	tm.WarningMode()
+	tm.StartProgram(ProgramWarning)
 	return tm
 }
 
-// WarningMode -
-func (tm *TrafficManager) WarningMode() {
-	tm.program = WarningProgram
-	var flip bool
+// StartProgram -
+func (tm *TrafficManager) StartProgram(program *Program) {
+	tm.program = program
+	idxint := 0
 	for i := range tm.trafficLights {
-		if flip {
-			tm.trafficLights[i].Load(0, tm.program)
-		} else {
-			tm.trafficLights[i].Load(0, tm.program)
-		}
-		flip = !flip
-	}
-}
-
-// TestMode -
-func (tm *TrafficManager) TestMode() {
-	tm.program = TestProgram
-	var flip bool
-	for i := range tm.trafficLights {
-		if flip {
-			tm.trafficLights[i].Load(0, tm.program)
-		} else {
-			tm.trafficLights[i].Load(0, tm.program)
-		}
-		flip = !flip
-	}
-}
-
-// Start -
-func (tm *TrafficManager) Start() {
-	tm.program = NormalProgram
-	var flip bool
-	for i := range tm.trafficLights {
-		if flip {
-			tm.trafficLights[i].Load(2, tm.program)
-		} else {
-			tm.trafficLights[i].Load(0, tm.program)
-		}
-		flip = !flip
+		tm.trafficLights[i].Load(idxint, *tm.program)
+		idxint = (idxint + len(tm.trafficLights)/2) % len(tm.trafficLights)
 	}
 }
 

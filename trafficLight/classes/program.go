@@ -1,5 +1,7 @@
 package classes
 
+import "time"
+
 // lamp colors
 const (
 	off = iota
@@ -17,8 +19,9 @@ type Phase struct {
 
 // Program - Has phases and a state (active phase)
 type Program struct {
-	Phases []Phase
-	state  int
+	Phases     []Phase
+	state      int
+	clockSpeed time.Duration
 }
 
 // TestProgram - Turn every lamp on
@@ -29,6 +32,7 @@ var TestProgram = Program{
 		Phase{green, 1},
 		Phase{yellow, 1},
 	},
+	clockSpeed: time.Millisecond * 100,
 }
 
 // WarningProgram - Traffic light is not working, just blink
@@ -37,6 +41,7 @@ var WarningProgram = Program{
 		Phase{yellow, 1},
 		Phase{off, 1},
 	},
+	clockSpeed: time.Millisecond * 500,
 }
 
 // NormalProgram - Just the common traffic light
@@ -47,4 +52,5 @@ var NormalProgram = Program{
 		Phase{red, 3},
 		Phase{redyellow, 1},
 	},
+	clockSpeed: time.Second * 1,
 }

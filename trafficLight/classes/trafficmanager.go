@@ -2,7 +2,6 @@ package classes
 
 import (
 	"fmt"
-	"sync"
 	"time"
 
 	"github.com/framps/golang_tutorial/trafficLight/globals"
@@ -12,22 +11,39 @@ import (
 type TrafficManager struct {
 	trafficLights []*TrafficLight
 	lc            *LEDController
+	program       Program
 }
 
 // NewTrafficManager -
-func NewTrafficManager(trafficLights []*TrafficLight, ledController *LEDController) *TrafficManager {
+func NewTrafficManager(trafficLights []*TrafficLight, ledController *LEDController, program *Program) *TrafficManager {
 	tm := &TrafficManager{trafficLights: trafficLights, lc: ledController}
+	tm.WarningMode()
 	return tm
+}
+
+// WarningMode -
+func (tm *TrafficManager) WarningMode() {
+	tm.program = WarningProgram
+	var flip bool
+	for i := range tm.trafficLights {
+		if flip {
+			tm.trafficLights[i].Load(0, tm.program)
+		} else {
+			tm.trafficLights[i].Load(0, tm.program)
+		}
+		flip = !flip
+	}
 }
 
 // TestMode -
 func (tm *TrafficManager) TestMode() {
+	tm.program = TestProgram
 	var flip bool
 	for i := range tm.trafficLights {
 		if flip {
-			tm.trafficLights[i].Load(2, TestProgram)
+			tm.trafficLights[i].Load(0, tm.program)
 		} else {
-			tm.trafficLights[i].Load(0, TestProgram)
+			tm.trafficLights[i].Load(0, tm.program)
 		}
 		flip = !flip
 	}
@@ -35,19 +51,20 @@ func (tm *TrafficManager) TestMode() {
 
 // Start -
 func (tm *TrafficManager) Start() {
+	tm.program = NormalProgram
 	var flip bool
 	for i := range tm.trafficLights {
 		if flip {
-			tm.trafficLights[i].Load(2, NormalProgram)
+			tm.trafficLights[i].Load(2, tm.program)
 		} else {
-			tm.trafficLights[i].Load(0, NormalProgram)
+			tm.trafficLights[i].Load(0, tm.program)
 		}
 		flip = !flip
 	}
 }
 
 // On -
-func (tm *TrafficManager) On(wg *sync.WaitGroup) {
+func (tm *TrafficManager) On() {
 
 	d := make(chan int)
 
@@ -83,7 +100,7 @@ func (tm *TrafficManager) On(wg *sync.WaitGroup) {
 			for i := range tm.trafficLights {
 				tm.trafficLights[i].c <- struct{}{} // send new tick
 			}
-			time.Sleep(time.Second * 1)
+			time.Sleep(tm.program.clockSpeed)
 		}
 	}()
 }

@@ -12,7 +12,6 @@ import (
 	"flag"
 	"os"
 	"os/signal"
-	"sync"
 	"syscall"
 	"time"
 
@@ -39,26 +38,25 @@ func main() {
 	trafficLights := []*classes.TrafficLight{trafficLight1, trafficLight2}
 
 	lc := classes.NewLEDController()
-	tm := classes.NewTrafficManager(trafficLights, lc)
+	tm := classes.NewTrafficManager(trafficLights, lc, &classes.NormalProgram)
 
-	c := make(chan os.Signal)
-	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
 	go func() {
 		<-c
 		lc.Close()
 		os.Exit(1)
 	}()
 
-	var wg sync.WaitGroup
-	wg.Add(1)
-	tm.On(&wg)
+	tm.On()
 
-	go func() {
+	for {
 		time.Sleep(time.Second * 5)
 		tm.TestMode()
 		time.Sleep(time.Second * 5)
 		tm.Start()
-	}()
+		time.Sleep(time.Second * 10)
+		tm.WarningMode()
+	}
 
-	wg.Wait()
 }

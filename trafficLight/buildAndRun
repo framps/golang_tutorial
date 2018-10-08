@@ -1,0 +1,6 @@
+#!/bin/bash
+EXE=trafficlight_arm
+IP=192.168.0.103
+env GOOS=linux GOARCH=arm GOARM=5 go build -o $EXE
+scp trafficlight_arm pi@$IP:/home/pi
+ssh pi@$IP sudo ./$EXE -leds -monitor

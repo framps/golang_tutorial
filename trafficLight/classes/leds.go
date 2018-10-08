@@ -17,16 +17,19 @@ type LEDs struct {
 //                     0   1   2   3   4   5   6   7
 var gpio2bcm = [8]int{17, 18, 27, 22, 23, 24, 25, 4}
 
+// LEDController -
 type LEDController struct {
 	enabled bool
 }
 
+// NewLEDController -
 func NewLEDController() *LEDController {
 	l := &LEDController{enabled: globals.EnableLEDs}
 	l.Open()
 	return l
 }
 
+// ClearAll -
 func (l *LEDController) ClearAll() {
 	if l.enabled {
 		for _, p := range gpio2bcm {
@@ -37,6 +40,7 @@ func (l *LEDController) ClearAll() {
 	}
 }
 
+// Open -
 func (l *LEDController) Open() {
 	if l.enabled {
 		err := rpio.Open()
@@ -47,6 +51,7 @@ func (l *LEDController) Open() {
 	}
 }
 
+// Close -
 func (l *LEDController) Close() {
 	if l.enabled {
 		l.ClearAll()
@@ -54,12 +59,14 @@ func (l *LEDController) Close() {
 	}
 }
 
+// On -
 func (l *LEDController) On(gpio int) {
 	pin := rpio.Pin(gpio2bcm[gpio])
 	pin.Output()
 	pin.High()
 }
 
+// Off -
 func (l *LEDController) Off(gpio int) {
 	pin := rpio.Pin(gpio2bcm[gpio])
 	pin.Output()

@@ -1,6 +1,15 @@
 #!/bin/bash
+
+# Samples used in a small go tutorial
+#
+# Copyright (C) 2017,2018 framp at linux-tips-and-tricks dot de
+#
+# Samples for go - simple trafficlight simulation using go channels and go routines
+#
+# See github.com/framps/golang_tutorial for latest code
+
 EXE=trafficlight_arm
 IP=192.168.0.103
 env GOOS=linux GOARCH=arm GOARM=5 go build -o $EXE
-scp trafficlight_arm pi@$IP:/home/pi
+scp $EXE pi@$IP:/home/pi
 ssh pi@$IP sudo ./$EXE -leds -monitor

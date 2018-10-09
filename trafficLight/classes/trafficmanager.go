@@ -23,9 +23,9 @@ type TrafficManager struct {
 }
 
 // NewTrafficManager -
-func NewTrafficManager(trafficLights []*TrafficLight, ledController *LEDController) *TrafficManager {
-	tm := &TrafficManager{trafficLights: trafficLights, lc: ledController}
-	tm.StartProgram(ProgramWarning)
+func NewTrafficManager(trafficLights []*TrafficLight, ledController *LEDController, program *Program) *TrafficManager {
+	tm := &TrafficManager{trafficLights: trafficLights, lc: ledController, program: program}
+	tm.StartProgram(program)
 	return tm
 }
 

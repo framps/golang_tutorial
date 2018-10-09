@@ -13,7 +13,6 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
 	"github.com/framps/golang_tutorial/trafficLight/classes"
 	"github.com/framps/golang_tutorial/trafficLight/globals"
@@ -32,30 +31,37 @@ func main() {
 	flag.BoolVar(&globals.EnableLEDs, "leds", false, "Drive LEDs")
 	flag.Parse()
 
-	trafficLight1 := classes.NewTrafficLight(0, T1LEDs)
-	trafficLight2 := classes.NewTrafficLight(1, T2LEDs)
-	trafficLights := []*classes.TrafficLight{trafficLight1, trafficLight2}
+	trafficLights := []*classes.TrafficLight{
+		classes.NewTrafficLight(0, T1LEDs),
+		classes.NewTrafficLight(1, T2LEDs)}
 
 	lc := classes.NewLEDController()
-	tm := classes.NewTrafficManager(trafficLights, lc)
+	tm := classes.NewTrafficManager(trafficLights, lc, classes.ProgramNormal)
+
+	done := make(chan struct{})
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
 	go func() {
 		<-c
-		lc.Close()
-		os.Exit(1)
+		done <- struct{}{}
 	}()
 
 	tm.On()
 
-	for {
-		time.Sleep(time.Second * 5)
-		tm.StartProgram(classes.ProgramTest)
-		time.Sleep(time.Second * 5)
-		tm.StartProgram(classes.ProgramNormal)
-		time.Sleep(time.Second * 30)
-		tm.StartProgram(classes.ProgramWarning)
-	}
+	/*
+		for {
+			time.Sleep(time.Second * 5)
+			tm.StartProgram(classes.ProgramTest)
+			time.Sleep(time.Second * 5)
+			tm.StartProgram(classes.ProgramNormal)
+			time.Sleep(time.Second * 30)
+			tm.StartProgram(classes.ProgramWarning)
+		}
+	*/
+
+	<-done
+	lc.Close()
+	os.Exit(1)
 
 }

@@ -33,8 +33,8 @@ func NewTrafficLight(number int, leds LEDs) (t *TrafficLight) {
 }
 
 // Load -
-func (t *TrafficLight) Load(startPhase int, program *Program) {
-	t.program = *program
+func (t *TrafficLight) Load(startPhase int, program Program) {
+	t.program = program
 	t.program.state = startPhase
 }
 

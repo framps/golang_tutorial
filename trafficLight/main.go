@@ -30,7 +30,6 @@ func main() {
 	flag.BoolVar(&globals.Debug, "debug", false, "Write debug messages")
 	flag.BoolVar(&globals.Monitor, "monitor", true, "Monitor LEDs on screen")
 	flag.BoolVar(&globals.EnableLEDs, "leds", false, "Drive LEDs")
-
 	flag.Parse()
 
 	trafficLight1 := classes.NewTrafficLight(0, T1LEDs)
@@ -57,7 +56,6 @@ func main() {
 		tm.StartProgram(classes.ProgramNormal)
 		time.Sleep(time.Second * 30)
 		tm.StartProgram(classes.ProgramWarning)
-
 	}
 
 }

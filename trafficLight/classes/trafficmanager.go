@@ -23,9 +23,9 @@ type TrafficManager struct {
 }
 
 // NewTrafficManager -
-func NewTrafficManager(trafficLights []*TrafficLight, ledController *LEDController, program *Program) *TrafficManager {
-	tm := &TrafficManager{trafficLights: trafficLights, lc: ledController, program: program}
-	tm.StartProgram(program)
+func NewTrafficManager(trafficLights []*TrafficLight, ledController *LEDController) *TrafficManager {
+	tm := &TrafficManager{trafficLights: trafficLights, lc: ledController}
+	tm.StartProgram(ProgramWarning)
 	return tm
 }
 
@@ -66,11 +66,12 @@ func (tm *TrafficManager) On() {
 		}
 	}(d)
 
-	// start all trafficlights to run parallel as a go routine
+	// start all trafficlights to run in parallel
 	for i := range tm.trafficLights {
 		go tm.trafficLights[i].Run(d)
 	}
 
+	// send ticks to traffic lights
 	go func() {
 		for {
 			for i := range tm.trafficLights {

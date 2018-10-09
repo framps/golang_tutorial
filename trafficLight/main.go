@@ -13,6 +13,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/framps/golang_tutorial/trafficLight/classes"
 	"github.com/framps/golang_tutorial/trafficLight/globals"
@@ -36,7 +37,7 @@ func main() {
 		classes.NewTrafficLight(1, T2LEDs)}
 
 	lc := classes.NewLEDController()
-	tm := classes.NewTrafficManager(trafficLights, lc, classes.ProgramNormal)
+	tm := classes.NewTrafficManager(trafficLights, lc)
 
 	done := make(chan struct{})
 
@@ -49,19 +50,18 @@ func main() {
 
 	tm.On()
 
-	/*
-		for {
-			time.Sleep(time.Second * 5)
-			tm.StartProgram(classes.ProgramTest)
-			time.Sleep(time.Second * 5)
-			tm.StartProgram(classes.ProgramNormal)
-			time.Sleep(time.Second * 30)
-			tm.StartProgram(classes.ProgramWarning)
-		}
-	*/
+	for {
+		time.Sleep(time.Second * 5)
+		tm.StartProgram(classes.ProgramTest)
+		time.Sleep(time.Second * 5)
+		tm.StartProgram(classes.ProgramNormal)
+		time.Sleep(time.Second * 30)
+		tm.StartProgram(classes.ProgramWarning)
 
-	<-done
-	lc.Close()
-	os.Exit(1)
+		<-done
+		lc.Close()
+		os.Exit(1)
+
+	}
 
 }

@@ -1,5 +1,13 @@
 package classes
 
+// Samples used in a small go tutorial
+//
+// Copyright (C) 2017,2018 framp at linux-tips-and-tricks dot de
+//
+// Samples for go - simple trafficlight simulation using go channels and go routines
+//
+// See github.com/framps/golang_tutorial for latest code
+
 import (
 	"fmt"
 	"time"
@@ -26,7 +34,7 @@ func (tm *TrafficManager) StartProgram(program *Program) {
 	tm.program = program
 	idxint := 0
 	for i := range tm.trafficLights {
-		tm.trafficLights[i].Load(idxint, tm.program)
+		tm.trafficLights[i].Load(idxint, *tm.program)
 		idxint = (idxint + len(tm.trafficLights)/2) % len(tm.trafficLights)
 	}
 }

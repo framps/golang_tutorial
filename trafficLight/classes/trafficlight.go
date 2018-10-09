@@ -2,9 +2,10 @@ package classes
 
 import (
 	"fmt"
-
-	"github.com/framps/golang_tutorial/trafficLight/constants"
 )
+
+// ascii representation of phase lamps (Green, Yellow, Red, Read and Yellow )
+var phaseString = []string{". . .", ". . G", ". Y .", "R . .", "R Y ."}
 
 // TrafficLight -
 type TrafficLight struct {
@@ -18,25 +19,25 @@ type TrafficLight struct {
 // NewTrafficLight -- Create a new trafficlight
 func NewTrafficLight(number int, leds LEDs) (t *TrafficLight) {
 	c := make(chan struct{})
-	t = &TrafficLight{number: number, ticks: 0, program: ProgramWarning, leds: leds, c: c}
+	t = &TrafficLight{number: number, ticks: 0, program: *ProgramWarning, leds: leds, c: c}
 	t.program.state = 1
 	return t
 }
 
 // Load -
 func (t *TrafficLight) Load(startPhase int, program *Program) {
-	t.program = program
+	t.program = *program
 	t.program.state = startPhase
 }
 
 // Implement Stringer interface to display a readable form of the traffic light
 func (t *TrafficLight) String() string {
-	return fmt.Sprintf("<%d>: %s |", t.number, constants.PhaseString[t.program.Phases[t.program.state].Lights])
+	return fmt.Sprintf("<%d>: %s |", t.number, phaseString[t.program.Phases[t.program.state].Lights])
 }
 
 // FlashLEDs -
 func (t *TrafficLight) FlashLEDs(lightController *LEDController) {
-	l := constants.PhaseString[t.program.Phases[t.program.state].Lights]
+	l := phaseString[t.program.Phases[t.program.state].Lights]
 	for i := 0; i < len(l); i += 2 {
 		if l[i] == byte('.') {
 			lightController.Off(t.leds.Pin[i/2])

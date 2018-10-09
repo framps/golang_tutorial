@@ -26,7 +26,7 @@ func (tm *TrafficManager) StartProgram(program *Program) {
 	tm.program = program
 	idxint := 0
 	for i := range tm.trafficLights {
-		tm.trafficLights[i].Load(idxint, *tm.program)
+		tm.trafficLights[i].Load(idxint, tm.program)
 		idxint = (idxint + len(tm.trafficLights)/2) % len(tm.trafficLights)
 	}
 }

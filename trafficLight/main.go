@@ -21,7 +21,7 @@ import (
 
 func main() {
 
-	// GPIOs: red, yellow, green
+	// GPIO#s: red, yellow, green
 	var (
 		T1LEDs = classes.LEDs{[...]int{2, 3, 4}}
 		T2LEDs = classes.LEDs{[...]int{5, 6, 7}}

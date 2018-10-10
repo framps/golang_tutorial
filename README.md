@@ -13,7 +13,7 @@ All samples can be run on a Raspberry Pi or any other Linux system with one exce
 9. interfaces - Sample code which demonstrates go interfaces  
 10. ipLocation - Retrieve location information about the current used IP address via REST call sunrise and sunset time via REST calls
 11. loginFritz - Login into an AVM Fritzbox and handle the challenge response. The code retrieves the internet usage counters
-12. methods - Sample go code which demonstrates usage om methods
-13. trafficLight - Simple traffix light simulation using channels and go routines. Can be used on Raspberry when LEDs are connected to GPIOs
+12. methods - Sample go code which demonstrates usage of methods
+13. trafficLight - traffic light simulation of two trafficlights using channels and go routines. Can use real LEDs on a Raspberry using GPIOs and/or simulate LEDs on a monitor
 14. types - Samples for the different types in go
 15. utf8 - Sample for utf8 handling in go

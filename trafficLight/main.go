@@ -42,7 +42,8 @@ func main() {
 	done := make(chan struct{})
 
 	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
+	//	signal.Notify(c, os.Interrupt, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
+	signal.Notify(c, syscall.SIGTERM)
 	go func() {
 		<-c
 		done <- struct{}{}
@@ -61,7 +62,6 @@ func main() {
 		<-done
 		lc.Close()
 		os.Exit(1)
-
 	}
 
 }

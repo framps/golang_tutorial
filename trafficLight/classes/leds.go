@@ -9,12 +9,16 @@ package classes
 // See github.com/framps/golang_tutorial for latest code
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"os"
 
 	"github.com/framps/golang_tutorial/trafficLight/globals"
 	rpio "github.com/stianeikeland/go-rpio"
 )
+
+const GPIOFile = "./GPIO.json"
 
 // LEDs - LED GPIO numbers for lights of one traffic light
 type LEDs struct {
@@ -22,17 +26,18 @@ type LEDs struct {
 }
 
 // map GPIO numbers to BCM GPIO numbers
-//                     0   1   2   3   4   5   6   7
-var gpio2bcm = [8]int{17, 18, 27, 22, 23, 24, 25, 4}
+//                           0   1   2   3   4   5   6   7
+var defaultgpio2bcm = [8]int{17, 18, 27, 22, 23, 24, 25, 4}
 
 // LEDController -
 type LEDController struct {
-	enabled bool
+	enabled  bool
+	gpio2bcm [8]int
 }
 
 // NewLEDController -
 func NewLEDController() *LEDController {
-	l := &LEDController{enabled: globals.EnableLEDs}
+	l := &LEDController{enabled: globals.EnableLEDs, gpio2bcm: defaultgpio2bcm}
 	l.Open()
 	return l
 }
@@ -40,7 +45,7 @@ func NewLEDController() *LEDController {
 // ClearAll -
 func (l *LEDController) ClearAll() {
 	if l.enabled {
-		for _, p := range gpio2bcm {
+		for _, p := range l.gpio2bcm {
 			pin := rpio.Pin(p)
 			pin.Output()
 			pin.Low()
@@ -56,6 +61,12 @@ func (l *LEDController) Open() {
 			fmt.Printf("Error accessing GPIO: %s\n", err.Error())
 			os.Exit(42)
 		}
+
+		defs, err := l.ReadGPIOController()
+		if err == nil {
+			fmt.Printf("defs: %#v\n", defs)
+			l.gpio2bcm = *defs
+		}
 	}
 }
 
@@ -67,16 +78,35 @@ func (l *LEDController) Close() {
 	}
 }
 
+// ReadGPIOConfig -
+func (l *LEDController) ReadGPIOController() (*[8]int, error) {
+	file, e := ioutil.ReadFile(GPIOFile)
+	if e != nil { // error
+		if !os.IsNotExist(e) {
+			fmt.Printf("%s read error: %v\n", GPIOFile, e)
+		}
+		return nil, e
+	}
+
+	var GPIODefs [8]int
+	e = json.Unmarshal(file, &GPIODefs)
+	if e != nil {
+		fmt.Printf("JSON parse error: %v\n", e)
+		return nil, e
+	}
+	return &GPIODefs, nil
+}
+
 // On -
 func (l *LEDController) On(gpio int) {
-	pin := rpio.Pin(gpio2bcm[gpio])
+	pin := rpio.Pin(l.gpio2bcm[gpio])
 	pin.Output()
 	pin.High()
 }
 
 // Off -
 func (l *LEDController) Off(gpio int) {
-	pin := rpio.Pin(gpio2bcm[gpio])
+	pin := rpio.Pin(l.gpio2bcm[gpio])
 	pin.Output()
 	pin.Low()
 }

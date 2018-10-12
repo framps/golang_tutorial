@@ -18,24 +18,25 @@ import (
 // TrafficManager -
 type TrafficManager struct {
 	trafficLights []*TrafficLight
-	lc            *LEDController
 	program       *Program
 }
 
 // NewTrafficManager -
-func NewTrafficManager(trafficLights []*TrafficLight, ledController *LEDController) *TrafficManager {
-	tm := &TrafficManager{trafficLights: trafficLights, lc: ledController}
-	tm.StartProgram(ProgramWarning)
+func NewTrafficManager(trafficLights []*TrafficLight) *TrafficManager {
+	tm := &TrafficManager{trafficLights: trafficLights}
+	tm.LoadProgram(ProgramNormal)
 	return tm
 }
 
-// StartProgram -
-func (tm *TrafficManager) StartProgram(program *Program) {
+// LoadProgram -
+func (tm *TrafficManager) LoadProgram(program *Program) {
+	debugMessage("Loading program %s\n", program.Name)
 	tm.program = program
 	idxint := 0
 	for i := range tm.trafficLights {
+		debugMessage("%d: Loading %d - Phase: %d\n", i, idxint, len(tm.program.Phases))
 		tm.trafficLights[i].Load(idxint, *tm.program)
-		idxint = (idxint + len(tm.trafficLights)/2) % len(tm.trafficLights)
+		idxint = (idxint + len(tm.program.Phases)/2) % len(tm.program.Phases)
 	}
 }
 
@@ -44,18 +45,17 @@ func (tm *TrafficManager) On() {
 
 	d := make(chan int)
 
-	go func(update chan int) {
-		var cnt int
+	// Display trafficlights
+	go func() {
+		cnt := 0
 		for {
-			<-update
+			n := <-d
 			cnt++
+			debugMessage("TM: Got update from %d (%d)\n", n, cnt)
 			if cnt >= len(tm.trafficLights) {
 				for i := range tm.trafficLights {
 					if globals.Monitor {
 						fmt.Printf("%s   ", tm.trafficLights[i].String())
-					}
-					if globals.EnableLEDs {
-						tm.trafficLights[i].FlashLEDs(tm.lc)
 					}
 				}
 				if globals.Monitor {
@@ -64,9 +64,9 @@ func (tm *TrafficManager) On() {
 				cnt = 0
 			}
 		}
-	}(d)
+	}()
 
-	// start all trafficlights to run in parallel
+	// start raffigLightall trafficlights to run in parallel
 	for i := range tm.trafficLights {
 		go tm.trafficLights[i].Run(d)
 	}

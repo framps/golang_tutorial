@@ -35,6 +35,18 @@ type LEDController struct {
 	gpio2bcm [8]int
 }
 
+// FlashLEDs -
+func (lc *LEDController) FlashLEDs(t *TrafficLight) {
+	l := phaseString[t.program.Phases[t.program.state].Lights]
+	for i := 0; i < len(l); i += 2 {
+		if l[i] == byte('.') {
+			lc.Off(t.leds.Pin[i/2])
+		} else {
+			lc.On(t.leds.Pin[i/2])
+		}
+	}
+}
+
 // NewLEDController -
 func NewLEDController() *LEDController {
 	l := &LEDController{enabled: globals.EnableLEDs, gpio2bcm: defaultgpio2bcm}
@@ -43,9 +55,9 @@ func NewLEDController() *LEDController {
 }
 
 // ClearAll -
-func (l *LEDController) ClearAll() {
-	if l.enabled {
-		for _, p := range l.gpio2bcm {
+func (lc *LEDController) ClearAll() {
+	if lc.enabled {
+		for _, p := range lc.gpio2bcm {
 			pin := rpio.Pin(p)
 			pin.Output()
 			pin.Low()
@@ -54,18 +66,18 @@ func (l *LEDController) ClearAll() {
 }
 
 // Open -
-func (l *LEDController) Open() {
-	if l.enabled {
+func (lc *LEDController) Open() {
+	if lc.enabled {
 		err := rpio.Open()
 		if err != nil {
 			fmt.Printf("Error accessing GPIO: %s\n", err.Error())
 			os.Exit(42)
 		}
 
-		defs, err := l.ReadGPIOController()
+		defs, err := lc.ReadGPIOConfig()
 		if err == nil {
 			fmt.Printf("defs: %#v\n", defs)
-			l.gpio2bcm = *defs
+			lc.gpio2bcm = *defs
 		}
 	}
 }
@@ -79,7 +91,7 @@ func (l *LEDController) Close() {
 }
 
 // ReadGPIOConfig -
-func (l *LEDController) ReadGPIOController() (*[8]int, error) {
+func (lc *LEDController) ReadGPIOConfig() (*[8]int, error) {
 	file, e := ioutil.ReadFile(GPIOFile)
 	if e != nil { // error
 		if !os.IsNotExist(e) {
@@ -98,15 +110,15 @@ func (l *LEDController) ReadGPIOController() (*[8]int, error) {
 }
 
 // On -
-func (l *LEDController) On(gpio int) {
-	pin := rpio.Pin(l.gpio2bcm[gpio])
+func (lc *LEDController) On(gpio int) {
+	pin := rpio.Pin(lc.gpio2bcm[gpio])
 	pin.Output()
 	pin.High()
 }
 
 // Off -
-func (l *LEDController) Off(gpio int) {
-	pin := rpio.Pin(l.gpio2bcm[gpio])
+func (lc *LEDController) Off(gpio int) {
+	pin := rpio.Pin(lc.gpio2bcm[gpio])
 	pin.Output()
 	pin.Low()
 }

@@ -10,6 +10,8 @@ package classes
 
 import (
 	"fmt"
+
+	"github.com/framps/golang_tutorial/trafficLight/globals"
 )
 
 // ascii representation of phase lamps (Green, Yellow, Red, Read and Yellow )
@@ -22,12 +24,13 @@ type TrafficLight struct {
 	program Program       // program to execute
 	leds    LEDs          // LEDs to use
 	c       chan struct{} // tick channel to liston on
+	lc      *LEDController
 }
 
 // NewTrafficLight -- Create a new trafficlight
-func NewTrafficLight(number int, leds LEDs) (t *TrafficLight) {
+func NewTrafficLight(number int, leds LEDs, lc *LEDController) (t *TrafficLight) {
 	c := make(chan struct{})
-	t = &TrafficLight{number: number, ticks: 0, program: *ProgramWarning, leds: leds, c: c}
+	t = &TrafficLight{number: number, ticks: 0, program: *ProgramWarning, leds: leds, c: c, lc: lc}
 	t.program.state = 1
 	return t
 }
@@ -43,18 +46,6 @@ func (t *TrafficLight) String() string {
 	return fmt.Sprintf("<%d>: %s |", t.number, phaseString[t.program.Phases[t.program.state].Lights])
 }
 
-// FlashLEDs -
-func (t *TrafficLight) FlashLEDs(lightController *LEDController) {
-	l := phaseString[t.program.Phases[t.program.state].Lights]
-	for i := 0; i < len(l); i += 2 {
-		if l[i] == byte('.') {
-			lightController.Off(t.leds.Pin[i/2])
-		} else {
-			lightController.On(t.leds.Pin[i/2])
-		}
-	}
-}
-
 // Run - run traffic light program
 func (t *TrafficLight) Run(callBack chan int) {
 
@@ -63,6 +54,9 @@ func (t *TrafficLight) Run(callBack chan int) {
 		<-t.c // wait for tick
 		debugMessage("%v: Advancing ...\n", t.number)
 		t.Advance() // next trafficlight phase
+		if globals.EnableLEDs {
+			t.lc.FlashLEDs(t)
+		}
 		callBack <- t.number
 	}
 }

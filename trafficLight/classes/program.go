@@ -27,6 +27,7 @@ type Phase struct {
 
 // Program - Has phases and a state (active phase)
 type Program struct {
+	Name       string
 	Phases     []Phase
 	state      int
 	clockSpeed time.Duration
@@ -34,17 +35,19 @@ type Program struct {
 
 // ProgramTest - Turn every lamp on
 var ProgramTest = &Program{
+	Name: "Test",
 	Phases: []Phase{
 		Phase{red, 1},
 		Phase{yellow, 1},
 		Phase{green, 1},
 		Phase{yellow, 1},
 	},
-	clockSpeed: time.Millisecond * 100,
+	clockSpeed: time.Millisecond * 50,
 }
 
 // ProgramWarning - Traffic light is not working, just blink
 var ProgramWarning = &Program{
+	Name: "Warning",
 	Phases: []Phase{
 		Phase{yellow, 1},
 		Phase{off, 1},
@@ -54,10 +57,25 @@ var ProgramWarning = &Program{
 
 // ProgramNormal - Just the common traffic light
 var ProgramNormal = &Program{
+	Name: "Normal",
 	Phases: []Phase{
 		Phase{green, 3},
-		Phase{yellow, 1},
-		Phase{red, 3},
+		Phase{yellow, 2},
+		Phase{red, 4},
+		Phase{redyellow, 1},
+	},
+	clockSpeed: time.Second * 1,
+}
+
+// ProgramNormal2 - Just the common traffic light
+var ProgramNormal2 = &Program{
+	Name: "Normal",
+	Phases: []Phase{
+		Phase{green, 4},
+		Phase{yellow, 4},
+		Phase{red, 2},
+		Phase{red, 8},
+		Phase{redyellow, 1},
 		Phase{redyellow, 1},
 	},
 	clockSpeed: time.Second * 1,

@@ -10,9 +10,11 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/framps/golang_tutorial/trafficLight/classes"
 	"github.com/framps/golang_tutorial/trafficLight/globals"
@@ -49,20 +51,31 @@ func main() {
 		done <- struct{}{}
 	}()
 
+	type ProgramChunk struct {
+		program  *classes.Program
+		duration time.Duration
+	}
+
+	programs := []ProgramChunk{
+		ProgramChunk{classes.ProgramNormal2, time.Second * 5},
+		ProgramChunk{classes.ProgramWarning, time.Second * 3},
+		ProgramChunk{classes.ProgramNormal3, time.Second * 5},
+		ProgramChunk{classes.ProgramWarning, time.Second * 3},
+	}
+
 	tm.On()
 
 	for {
-		/*
-				time.Sleep(time.Second * 2)
-				tm.LoadProgram(classes.ProgramWarning)
-				time.Sleep(time.Second * 2)
-
-			tm.LoadProgram(classes.ProgramNormal)
-			time.Sleep(time.Second * 30)
-		*/
-		<-done
-		lc.Close()
-		os.Exit(1)
+		for _, p := range programs {
+			fmt.Printf("Program %s: Sleeping %s\n", p.program.Name, p.duration)
+			time.Sleep(p.duration)
+			tm.LoadProgram(p.program)
+			select {
+			case <-done:
+				lc.Close()
+				os.Exit(1)
+			}
+		}
 	}
 
 }

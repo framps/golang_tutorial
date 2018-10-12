@@ -19,18 +19,20 @@ import (
 type TrafficManager struct {
 	trafficLights []*TrafficLight
 	program       *Program
+	onoff         chan bool
 }
 
 // NewTrafficManager -
 func NewTrafficManager(trafficLights []*TrafficLight) *TrafficManager {
 	tm := &TrafficManager{trafficLights: trafficLights}
-	tm.LoadProgram(ProgramNormal)
+	tm.LoadProgram(ProgramWarning)
+	tm.onoff = make(chan bool)
 	return tm
 }
 
 // LoadProgram -
 func (tm *TrafficManager) LoadProgram(program *Program) {
-	debugMessage("Loading program %s\n", program.Name)
+	fmt.Printf("Loading program %s\n", program.Name)
 	tm.program = program
 	idxint := 0
 	for i := range tm.trafficLights {
@@ -42,7 +44,6 @@ func (tm *TrafficManager) LoadProgram(program *Program) {
 
 // On -
 func (tm *TrafficManager) On() {
-
 	d := make(chan int)
 
 	// Display trafficlights

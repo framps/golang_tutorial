@@ -18,7 +18,7 @@ import (
 	rpio "github.com/stianeikeland/go-rpio"
 )
 
-const GPIOFile = "./GPIO.json"
+const gPIOFile = "./GPIO.json"
 
 // LEDs - LED GPIO numbers for lights of one traffic light
 type LEDs struct {
@@ -83,19 +83,19 @@ func (lc *LEDController) Open() {
 }
 
 // Close -
-func (l *LEDController) Close() {
-	if l.enabled {
-		l.ClearAll()
+func (lc *LEDController) Close() {
+	if lc.enabled {
+		lc.ClearAll()
 		rpio.Close()
 	}
 }
 
 // ReadGPIOConfig -
 func (lc *LEDController) ReadGPIOConfig() (*[8]int, error) {
-	file, e := ioutil.ReadFile(GPIOFile)
+	file, e := ioutil.ReadFile(gPIOFile)
 	if e != nil { // error
 		if !os.IsNotExist(e) {
-			fmt.Printf("%s read error: %v\n", GPIOFile, e)
+			fmt.Printf("%s read error: %v\n", gPIOFile, e)
 		}
 		return nil, e
 	}

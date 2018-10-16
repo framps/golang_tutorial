@@ -39,6 +39,7 @@ type LEDController struct {
 func (lc *LEDController) FlashLEDs(t *TrafficLight) {
 	l := phaseString[t.program.Phases[t.program.state].Lights]
 	for i := 0; i < len(l); i += 2 {
+		debugMessage("*%v", t.leds.Pin[i/2])
 		if l[i] == byte('.') {
 			lc.Off(t.leds.Pin[i/2])
 		} else {
@@ -49,9 +50,15 @@ func (lc *LEDController) FlashLEDs(t *TrafficLight) {
 
 // NewLEDController -
 func NewLEDController() *LEDController {
+	debugMessage("Creating LED Controller")
 	l := &LEDController{enabled: globals.EnableLEDs, gpio2bcm: defaultgpio2bcm}
 	l.Open()
 	return l
+}
+
+// Enable -
+func (lc *LEDController) Enable() {
+	lc.enabled = true
 }
 
 // ClearAll -

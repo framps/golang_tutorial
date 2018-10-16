@@ -17,6 +17,6 @@ import (
 // Debugging helper
 func debugMessage(f string, p ...interface{}) {
 	if globals.Debug {
-		fmt.Printf(f, p...)
+		fmt.Printf(f+"\n", p...)
 	}
 }

@@ -10,6 +10,7 @@ package classes
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/framps/golang_tutorial/trafficLight/globals"
 )
@@ -29,10 +30,41 @@ type TrafficLight struct {
 
 // NewTrafficLight -- Create a new trafficlight
 func NewTrafficLight(number int, leds LEDs, lc *LEDController) (t *TrafficLight) {
+	debugMessage("Creating new trafficlight")
 	c := make(chan struct{})
 	t = &TrafficLight{number: number, ticks: 0, program: *ProgramWarning, leds: leds, c: c, lc: lc}
-	t.program.state = 1
+	t.Load(1, *ProgramWarning)
 	return t
+}
+
+// Start -
+func (t *TrafficLight) Start(stop chan struct{}) {
+
+	debugMessage("Starting trafficlight")
+	var dummyCallback chan int
+
+	ticker := time.NewTicker(time.Millisecond * 500)
+	go t.Run(dummyCallback)
+
+	// run trafficlight
+	go func(t *TrafficLight) {
+		debugMessage("%v: Running trafficlight", t.number)
+		select {
+		case <-stop:
+			debugMessage("%v: Stop received", t.number)
+			ticker.Stop()
+			return
+		}
+	}(t)
+
+	// local ticker to advance lights
+	go func(t *TrafficLight) {
+		debugMessage("%v: Starting ticker", t.number)
+		for now := range ticker.C {
+			debugMessage("%v: Ticker fired %v", t.number, now)
+			t.c <- struct{}{}
+		}
+	}(t)
 }
 
 // Load -
@@ -57,7 +89,7 @@ func (t *TrafficLight) Run(callBack chan int) {
 		if globals.EnableLEDs {
 			t.lc.FlashLEDs(t)
 		}
-		callBack <- t.number
+		//callBack <- t.number
 	}
 }
 
@@ -68,5 +100,7 @@ func (t *TrafficLight) Advance() {
 		debugMessage("%v: Next phase\n", t.number)
 		t.program.state = (t.program.state + 1) % len(t.program.Phases)
 		t.ticks = 0
+	} else {
+		debugMessage("ticktick")
 	}
 }

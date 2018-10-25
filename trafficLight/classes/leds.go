@@ -119,13 +119,21 @@ func (lc *LEDController) ReadGPIOConfig() (*[8]int, error) {
 // On -
 func (lc *LEDController) On(gpio int) {
 	pin := rpio.Pin(lc.gpio2bcm[gpio])
-	pin.Output()
-	pin.High()
+	if lc.enabled {
+		pin.Output()
+		pin.High()
+	} else {
+		fmt.Printf("Turn gpio %d (pin %d) on\n", gpio, pin)
+	}
 }
 
 // Off -
 func (lc *LEDController) Off(gpio int) {
 	pin := rpio.Pin(lc.gpio2bcm[gpio])
-	pin.Output()
-	pin.Low()
+	if lc.enabled {
+		pin.Output()
+		pin.Low()
+	} else {
+		fmt.Printf("Turn gpio %d (pin %d) off\n", gpio, pin)
+	}
 }

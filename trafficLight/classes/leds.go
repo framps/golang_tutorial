@@ -18,16 +18,17 @@ import (
 	rpio "github.com/stianeikeland/go-rpio"
 )
 
-const gPIOFile = "./GPIO.json"
+const gPIOFile = "GPIO.json"
 
 // LEDs - LED GPIO numbers for lights of one traffic light
 type LEDs struct {
 	Pin [3]int // red, yellow, green
 }
 
-// map GPIO numbers to BCM GPIO numbers
-//                           0   1   2   3   4   5   6   7
-var defaultgpio2bcm = [8]int{17, 18, 27, 22, 23, 24, 25, 4}
+// default map of GPIO numbers to BCM GPIO numbers
+// change GPIO.json to use other another mapping
+// GPIO#                  --->  0   1   2   3   4   5   6   7
+var defaultgpio2bcm = [...]int{17, 18, 27, 22, 23, 24, 25, 04}
 
 // LEDController -
 type LEDController struct {
@@ -76,8 +77,12 @@ func (lc *LEDController) Open() {
 
 		defs, err := lc.ReadGPIOConfig()
 		if err == nil {
-			fmt.Printf("defs: %#v\n", defs)
+			if globals.Monitor {
+				fmt.Printf("GPIO mapping to pins 0-7: %v\n", defs)
+			}
 			lc.gpio2bcm = *defs
+		} else {
+			fmt.Printf("Using default GPIO mapping to pins 0-7: %v\n", defs)
 		}
 	}
 }
@@ -92,11 +97,10 @@ func (lc *LEDController) Close() {
 
 // ReadGPIOConfig -
 func (lc *LEDController) ReadGPIOConfig() (*[8]int, error) {
+
 	file, e := ioutil.ReadFile(gPIOFile)
 	if e != nil { // error
-		if !os.IsNotExist(e) {
-			fmt.Printf("%s read error: %v\n", gPIOFile, e)
-		}
+		fmt.Printf("%s read error: %v\n", gPIOFile, e)
 		return nil, e
 	}
 

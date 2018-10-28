@@ -23,6 +23,7 @@ import (
 func main() {
 
 	// GPIO#s: red, yellow, green
+	// GPIO numbers to BCM GPIO numbers mapping defined in GPIO.json
 	var (
 		T1LEDs = classes.LEDs{[...]int{2, 3, 4}}
 		T2LEDs = classes.LEDs{[...]int{5, 6, 7}}
@@ -61,6 +62,8 @@ func main() {
 	// programs to run
 	programs := []ProgramChunk{
 		ProgramChunk{classes.ProgramWarning, time.Second * 5},
+		ProgramChunk{classes.ProgramNormal1, time.Second * 15},
+		ProgramChunk{classes.ProgramWarning, time.Second * 5},
 		ProgramChunk{classes.ProgramNormal2, time.Second * 15},
 		ProgramChunk{classes.ProgramWarning, time.Second * 5},
 		ProgramChunk{classes.ProgramNormal3, time.Second * 15},
@@ -74,7 +77,9 @@ func main() {
 	// loop though list of programs
 	for {
 		for _, p := range programs {
-			fmt.Printf("Running program %s for %s\n", p.program.Name, p.duration)
+			if globals.Monitor {
+				fmt.Printf("Running program %s for %s\n", p.program.Name, p.duration)
+			}
 			tm.LoadProgram(p.program)
 			time.Sleep(p.duration)
 			select {

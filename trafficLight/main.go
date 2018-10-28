@@ -43,11 +43,13 @@ func main() {
 
 	done := make(chan struct{})
 
-	c := make(chan os.Signal, 1)
-	//	signal.Notify(c, os.Interrupt, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
-	signal.Notify(c, syscall.SIGTERM)
+	ctrlc := make(chan os.Signal, 1)
+	signal.Notify(ctrlc, os.Interrupt, syscall.SIGHUP,
+		syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
+
+	// watch for CTRLC
 	go func() {
-		<-c
+		<-ctrlc
 		done <- struct{}{}
 	}()
 
@@ -56,24 +58,30 @@ func main() {
 		duration time.Duration
 	}
 
+	// programs to run
 	programs := []ProgramChunk{
-		ProgramChunk{classes.ProgramNormal2, time.Second * 5},
-		ProgramChunk{classes.ProgramWarning, time.Second * 3},
-		ProgramChunk{classes.ProgramNormal3, time.Second * 5},
-		ProgramChunk{classes.ProgramWarning, time.Second * 3},
+		ProgramChunk{classes.ProgramWarning, time.Second * 5},
+		ProgramChunk{classes.ProgramNormal2, time.Second * 15},
+		ProgramChunk{classes.ProgramWarning, time.Second * 5},
+		ProgramChunk{classes.ProgramNormal3, time.Second * 15},
+		ProgramChunk{classes.ProgramWarning, time.Second * 5},
+		ProgramChunk{classes.ProgramNormal4, time.Second * 15},
 	}
 
-	tm.On()
+	// start manager
+	tm.Start()
 
+	// loop though list of programs
 	for {
 		for _, p := range programs {
-			fmt.Printf("Program %s: Sleeping %s\n", p.program.Name, p.duration)
-			time.Sleep(p.duration)
+			fmt.Printf("Running program %s for %s\n", p.program.Name, p.duration)
 			tm.LoadProgram(p.program)
+			time.Sleep(p.duration)
 			select {
 			case <-done:
 				lc.Close()
 				os.Exit(1)
+			default:
 			}
 		}
 	}

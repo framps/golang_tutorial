@@ -25,14 +25,13 @@ type TrafficManager struct {
 // NewTrafficManager -
 func NewTrafficManager(trafficLights []*TrafficLight) *TrafficManager {
 	tm := &TrafficManager{trafficLights: trafficLights}
-	tm.LoadProgram(ProgramWarning)
+	tm.LoadProgram(ProgramTest)
 	tm.onoff = make(chan bool)
 	return tm
 }
 
-// LoadProgram -
+// LoadProgram - load new program in trafficlights
 func (tm *TrafficManager) LoadProgram(program *Program) {
-	fmt.Printf("Loading program %s\n", program.Name)
 	tm.program = program
 	idxint := 0
 	for i := range tm.trafficLights {
@@ -42,34 +41,32 @@ func (tm *TrafficManager) LoadProgram(program *Program) {
 	}
 }
 
-// On -
-func (tm *TrafficManager) On() {
+// Start - Start trafficmanager and manage trafficlights
+func (tm *TrafficManager) Start() {
 	d := make(chan int)
 
-	// Display trafficlights
+	// Display trafficlights on terminal if requested
 	go func() {
 		cnt := 0
 		for {
 			n := <-d
-			cnt++
-			debugMessage("TM: Got update from %d (%d)\n", n, cnt)
-			if cnt >= len(tm.trafficLights) {
-				for i := range tm.trafficLights {
-					if globals.Monitor {
+			if globals.Monitor {
+				cnt++
+				debugMessage("TM: Got update from %d (%d)\n", n, cnt)
+				if cnt >= len(tm.trafficLights) {
+					for i := range tm.trafficLights {
 						fmt.Printf("%s   ", tm.trafficLights[i].String())
 					}
-				}
-				if globals.Monitor {
 					fmt.Println()
+					cnt = 0
 				}
-				cnt = 0
 			}
 		}
 	}()
 
-	// start raffigLightall trafficlights to run in parallel
+	// start all trafficlights to run in parallel
 	for i := range tm.trafficLights {
-		go tm.trafficLights[i].Run(d)
+		go tm.trafficLights[i].On(d)
 	}
 
 	// send ticks to traffic lights
@@ -81,4 +78,5 @@ func (tm *TrafficManager) On() {
 			time.Sleep(tm.program.clockSpeed)
 		}
 	}()
+
 }

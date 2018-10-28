@@ -85,15 +85,26 @@ var ProgramNormal3 = &Program{
 	Phases: []Phase{
 		Phase{green, 4},
 		Phase{yellow, 1},
-		Phase{green, 1},
-		Phase{green, 1},
-		Phase{green, 4},
+		Phase{yellow, 1},
 
 		Phase{red, 4},
 		Phase{red, 1},
+		Phase{redyellow, 1},
+	},
+	clockSpeed: time.Second * 1,
+}
+
+// ProgramNormal4 - Just the common traffic light
+var ProgramNormal4 = &Program{
+	Name: "Normal3",
+	Phases: []Phase{
+		Phase{green, 4},
+		Phase{yellow, 1},
+		Phase{red, 1},
+
+		Phase{red, 4},
 		Phase{red, 1},
 		Phase{redyellow, 1},
-		Phase{green, 4},
 	},
 	clockSpeed: time.Second * 1,
 }

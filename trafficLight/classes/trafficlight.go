@@ -19,23 +19,24 @@ var phaseString = []string{". . .", ". . G", ". Y .", "R . .", "R Y ."}
 
 // TrafficLight -
 type TrafficLight struct {
-	number  int           // light number
-	ticks   int           // ticks received
-	program Program       // program to execute
-	leds    LEDs          // LEDs to use
-	c       chan struct{} // tick channel to liston on
-	lc      *LEDController
+	number  int            // light number
+	ticks   int            // ticks received
+	program Program        // program to execute
+	leds    LEDs           // LEDs to use
+	c       chan struct{}  // tick channel to liston on
+	lc      *LEDController // controller to driver LEDs
 }
 
 // NewTrafficLight -- Create a new trafficlight
 func NewTrafficLight(number int, leds LEDs, lc *LEDController) (t *TrafficLight) {
 	c := make(chan struct{})
-	t = &TrafficLight{number: number, ticks: 0, program: *ProgramWarning, leds: leds, c: c, lc: lc}
+	t = &TrafficLight{number: number, ticks: 0,
+		program: *ProgramTest, leds: leds, c: c, lc: lc}
 	t.program.state = 1
 	return t
 }
 
-// Load -
+// Load - Load new program
 func (t *TrafficLight) Load(startPhase int, program Program) {
 	t.program = program
 	t.program.state = startPhase
@@ -46,9 +47,8 @@ func (t *TrafficLight) String() string {
 	return fmt.Sprintf("<%d>: %s |", t.number, phaseString[t.program.Phases[t.program.state].Lights])
 }
 
-// Run - run traffic light program
-func (t *TrafficLight) Run(callBack chan int) {
-
+// On - Turn trafficlight on
+func (t *TrafficLight) On(callBack chan int) {
 	for {
 		debugMessage("%v: Waiting ...\n", t.number)
 		<-t.c // wait for tick

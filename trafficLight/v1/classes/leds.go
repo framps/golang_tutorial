@@ -14,7 +14,7 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/framps/golang_tutorial/trafficLight/globals"
+	"github.com/framps/golang_tutorial/trafficLight/v1/globals"
 	rpio "github.com/stianeikeland/go-rpio"
 )
 

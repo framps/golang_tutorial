@@ -11,7 +11,7 @@ package classes
 import (
 	"fmt"
 
-	"github.com/framps/golang_tutorial/trafficLight/globals"
+	"github.com/framps/golang_tutorial/trafficLight/v1/globals"
 )
 
 // Debugging helper

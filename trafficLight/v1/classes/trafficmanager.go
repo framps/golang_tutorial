@@ -12,7 +12,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/framps/golang_tutorial/trafficLight/globals"
+	"github.com/framps/golang_tutorial/trafficLight/v1/globals"
 )
 
 // TrafficManager -
@@ -20,11 +20,12 @@ type TrafficManager struct {
 	trafficLights []*TrafficLight
 	program       *Program
 	onoff         chan bool
+	ledController *LEDController // controller to driver LEDs
 }
 
 // NewTrafficManager -
-func NewTrafficManager(trafficLights []*TrafficLight) *TrafficManager {
-	tm := &TrafficManager{trafficLights: trafficLights}
+func NewTrafficManager(ledController *LEDController, trafficLights []*TrafficLight) *TrafficManager {
+	tm := &TrafficManager{trafficLights: trafficLights, ledController: ledController}
 	tm.LoadProgram(ProgramTest)
 	tm.onoff = make(chan bool)
 	return tm
@@ -32,6 +33,7 @@ func NewTrafficManager(trafficLights []*TrafficLight) *TrafficManager {
 
 // LoadProgram - load new program in trafficlights
 func (tm *TrafficManager) LoadProgram(program *Program) {
+	debugMessage("TM: Load %s\n", program.Name)
 	tm.program = program
 	idxint := 0
 	for i := range tm.trafficLights {
@@ -43,16 +45,16 @@ func (tm *TrafficManager) LoadProgram(program *Program) {
 
 // Start - Start trafficmanager and manage trafficlights
 func (tm *TrafficManager) Start() {
+	debugMessage("TM: Start\n")
 	d := make(chan int)
 
 	// Display trafficlights on terminal if requested
 	go func() {
 		cnt := 0
 		for {
-			n := <-d
+			<-d
 			if globals.Monitor {
 				cnt++
-				debugMessage("TM: Got update from %d (%d)\n", n, cnt)
 				if cnt >= len(tm.trafficLights) {
 					for i := range tm.trafficLights {
 						fmt.Printf("%s   ", tm.trafficLights[i].String())
@@ -66,7 +68,7 @@ func (tm *TrafficManager) Start() {
 
 	// start all trafficlights to run in parallel
 	for i := range tm.trafficLights {
-		go tm.trafficLights[i].On(d)
+		tm.trafficLights[i].On(d, tm.ledController)
 	}
 
 	// send ticks to traffic lights
@@ -79,4 +81,12 @@ func (tm *TrafficManager) Start() {
 		}
 	}()
 
+}
+
+// Stop - Stop trafficmanager and trafficlights
+func (tm *TrafficManager) Stop() {
+	for _, l := range tm.trafficLights {
+		l.Off()
+	}
+	tm.ledController.Close()
 }

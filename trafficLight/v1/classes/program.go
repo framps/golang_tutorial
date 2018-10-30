@@ -39,6 +39,7 @@ var ProgramTest = &Program{
 	Phases: []Phase{
 		Phase{red, 1},
 		Phase{yellow, 1},
+
 		Phase{green, 1},
 		Phase{yellow, 1},
 	},
@@ -61,6 +62,7 @@ var ProgramNormal1 = &Program{
 	Phases: []Phase{
 		Phase{green, 3},
 		Phase{yellow, 2},
+
 		Phase{red, 4},
 		Phase{redyellow, 1},
 	},
@@ -73,6 +75,7 @@ var ProgramNormal2 = &Program{
 	Phases: []Phase{
 		Phase{green, 4},
 		Phase{yellow, 1},
+
 		Phase{red, 4},
 		Phase{redyellow, 1},
 	},
@@ -86,21 +89,6 @@ var ProgramNormal3 = &Program{
 		Phase{green, 4},
 		Phase{yellow, 1},
 		Phase{yellow, 1},
-
-		Phase{red, 4},
-		Phase{red, 1},
-		Phase{redyellow, 1},
-	},
-	clockSpeed: time.Second * 1,
-}
-
-// ProgramNormal4 - Just the common traffic light
-var ProgramNormal4 = &Program{
-	Name: "Normal3",
-	Phases: []Phase{
-		Phase{green, 4},
-		Phase{yellow, 1},
-		Phase{red, 1},
 
 		Phase{red, 4},
 		Phase{red, 1},

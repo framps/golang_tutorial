@@ -16,8 +16,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/framps/golang_tutorial/trafficLight/classes"
-	"github.com/framps/golang_tutorial/trafficLight/globals"
+	"github.com/framps/golang_tutorial/trafficLight/v1/classes"
+	"github.com/framps/golang_tutorial/trafficLight/v1/globals"
 )
 
 func main() {
@@ -37,22 +37,13 @@ func main() {
 	lc := classes.NewLEDController()
 
 	trafficLights := []*classes.TrafficLight{
-		classes.NewTrafficLight(0, T1LEDs, lc),
-		classes.NewTrafficLight(1, T2LEDs, lc)}
+		classes.NewTrafficLight(0, T1LEDs),
+		classes.NewTrafficLight(1, T2LEDs)}
 
-	tm := classes.NewTrafficManager(trafficLights)
-
-	done := make(chan struct{})
+	tm := classes.NewTrafficManager(lc, trafficLights)
 
 	ctrlc := make(chan os.Signal, 1)
-	signal.Notify(ctrlc, os.Interrupt, syscall.SIGHUP,
-		syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
-
-	// watch for CTRLC
-	go func() {
-		<-ctrlc
-		done <- struct{}{}
-	}()
+	signal.Notify(ctrlc, os.Interrupt, syscall.SIGTERM)
 
 	type ProgramChunk struct {
 		program  *classes.Program
@@ -68,27 +59,33 @@ func main() {
 		ProgramChunk{classes.ProgramWarning, time.Second * 5},
 		ProgramChunk{classes.ProgramNormal3, time.Second * 15},
 		ProgramChunk{classes.ProgramWarning, time.Second * 5},
-		ProgramChunk{classes.ProgramNormal4, time.Second * 15},
 	}
 
-	// start manager
+	// start traffic manager
 	tm.Start()
 
-	// loop though list of programs
-	for {
-		for _, p := range programs {
-			if globals.Monitor {
-				fmt.Printf("Running program %s for %s\n", p.program.Name, p.duration)
-			}
-			tm.LoadProgram(p.program)
-			time.Sleep(p.duration)
-			select {
-			case <-done:
-				lc.Close()
-				os.Exit(1)
-			default:
+	done := make(chan struct{})
+	go func() {
+		<-ctrlc
+		fmt.Printf("CTRLC")
+		done <- struct{}{}
+	}()
+
+	go func() {
+		// loop though list of programs
+		for {
+			for _, p := range programs {
+				if globals.Monitor {
+					fmt.Printf("Running program %s for %s\n", p.program.Name, p.duration)
+				}
+				tm.LoadProgram(p.program)
+				time.Sleep(p.duration)
 			}
 		}
-	}
+	}()
 
+	<-done
+	fmt.Print("Done received")
+	tm.Stop()
+	os.Exit(0)
 }

@@ -50,15 +50,21 @@ func main() {
 		duration time.Duration
 	}
 
+	programRepository := classes.NewProgramRepository()
+
 	// programs to run
-	programs := []ProgramChunk{
-		ProgramChunk{classes.ProgramWarning, time.Second * 5},
-		ProgramChunk{classes.ProgramNormal1, time.Second * 15},
-		ProgramChunk{classes.ProgramWarning, time.Second * 5},
-		ProgramChunk{classes.ProgramNormal2, time.Second * 15},
-		ProgramChunk{classes.ProgramWarning, time.Second * 5},
-		ProgramChunk{classes.ProgramNormal3, time.Second * 15},
-		ProgramChunk{classes.ProgramWarning, time.Second * 5},
+	programs := make([]ProgramChunk, 0, len(programRepository))
+	programs = append(programs,
+		ProgramChunk{program: classes.ProgramTest,
+			duration: time.Second * 1})
+	for _, p := range programRepository {
+		programs = append(programs,
+			ProgramChunk{program: classes.ProgramWarning,
+				duration: time.Second * 5})
+		fmt.Printf("Loading program %v\n", p)
+		programs = append(programs,
+			ProgramChunk{program: p,
+				duration: time.Second * 15})
 	}
 
 	// start traffic manager
@@ -76,6 +82,7 @@ func main() {
 	go func() {
 		for {
 			for _, p := range programs {
+				fmt.Printf("- %v\n", p)
 				if globals.Monitor {
 					fmt.Printf("Running program %s for %s\n", p.program.Name, p.duration)
 				}
@@ -87,7 +94,8 @@ func main() {
 
 	// wait for CTRLC
 	<-done
-	fmt.Print("Done received")
+	fmt.Print("Done received\n")
+	programRepository.Save()
 	tm.Stop()
 	os.Exit(0)
 }

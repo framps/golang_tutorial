@@ -8,7 +8,12 @@ package classes
 //
 // See github.com/framps/golang_tutorial for latest code
 
-import "time"
+import (
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"time"
+)
 
 // lamp colors
 const (
@@ -19,23 +24,32 @@ const (
 	redyellow
 )
 
+const (
+	repositoryFile     = "programs.json"
+	ProgramWarningName = "Warning"
+	ProgramTestName    = "Test"
+)
+
+// ProgramRepository -
+type ProgramRepository map[string]*Program
+
 // Phase consists of light and number of ticks to flash the lights
 type Phase struct {
-	Lights int
-	Ticks  int
+	Light int `json:"light"`
+	Ticks int `json:"ticks"`
 }
 
 // Program - Has phases and a state (active phase)
 type Program struct {
-	Name       string
-	Phases     []Phase
-	state      int
-	clockSpeed time.Duration
+	Name       string        `json:"name"`
+	Phases     []Phase       `json:"phases"`
+	state      int           `json:"state"`
+	clockSpeed time.Duration `json:"clock_speed"`
 }
 
 // ProgramTest - Turn every lamp on
 var ProgramTest = &Program{
-	Name: "Test",
+	Name: ProgramTestName,
 	Phases: []Phase{
 		Phase{red, 1},
 		Phase{yellow, 1},
@@ -48,7 +62,7 @@ var ProgramTest = &Program{
 
 // ProgramWarning - Traffic light is not working, just blink
 var ProgramWarning = &Program{
-	Name: "Warning",
+	Name: ProgramWarningName,
 	Phases: []Phase{
 		Phase{yellow, 1},
 		Phase{off, 1},
@@ -95,4 +109,60 @@ var ProgramNormal3 = &Program{
 		Phase{redyellow, 1},
 	},
 	clockSpeed: time.Second * 1,
+}
+
+func NewProgramRepository() ProgramRepository {
+
+	// Default programs
+	prd := ProgramRepository{
+		ProgramNormal1.Name: ProgramNormal1,
+		ProgramNormal2.Name: ProgramNormal2,
+		ProgramNormal3.Name: ProgramNormal3,
+	}
+
+	prc, err := prd.Load()
+	if err == nil {
+		// Add Test and Warning programs
+		fmt.Printf("Using custom programs defined in %s\n", repositoryFile)
+		prc[ProgramTest.Name] = ProgramTest
+		prc[ProgramWarning.Name] = ProgramWarning
+		return prc
+	}
+	fmt.Printf("%s\n", err.Error())
+	fmt.Printf("Using default programs\n")
+	return prd
+}
+
+// Load -
+func (pr *ProgramRepository) Load() (ProgramRepository, error) {
+	file, e := ioutil.ReadFile(repositoryFile)
+	if e != nil { // error
+		fmt.Printf("%s read error: %v\n", repositoryFile, e)
+		return nil, e
+	}
+	var repository ProgramRepository
+	e = json.Unmarshal(file, &repository)
+	if e != nil {
+		fmt.Printf("JSON parse error: %v\n", e)
+		return nil, e
+	}
+	return repository, nil
+}
+
+// Save -
+func (pr *ProgramRepository) Save() error {
+
+	b, e := json.MarshalIndent(pr, "", "   ")
+	if e != nil {
+		fmt.Printf("JSON marshal error: %v\n", e)
+		return e
+	}
+
+	e = ioutil.WriteFile(repositoryFile, b, 0644)
+	if e != nil { // error
+		fmt.Printf("%s write error: %v\n", repositoryFile, e)
+		return e
+	}
+	fmt.Printf("Saving %s\n", repositoryFile)
+	return nil
 }

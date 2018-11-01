@@ -38,7 +38,7 @@ type LEDController struct {
 
 // FlashLEDs -
 func (lc *LEDController) FlashLEDs(t *TrafficLight) {
-	l := phaseString[t.program.Phases[t.program.state].Lights]
+	l := phaseString[t.program.Phases[t.program.state].Light]
 	for i := 0; i < len(l); i += 2 {
 		if l[i] == byte('.') {
 			lc.Off(t.leds.Pin[i/2])

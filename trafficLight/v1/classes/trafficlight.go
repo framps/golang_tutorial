@@ -45,7 +45,7 @@ func (t *TrafficLight) Load(startPhase int, program Program) {
 
 // Implement Stringer interface to display a readable form of the traffic light
 func (t *TrafficLight) String() string {
-	return fmt.Sprintf("<%d>: %s |", t.number, phaseString[t.program.Phases[t.program.state].Lights])
+	return fmt.Sprintf("<%d>: %s |", t.number, phaseString[t.program.Phases[t.program.state].Light])
 }
 
 // On - Turn trafficlight on

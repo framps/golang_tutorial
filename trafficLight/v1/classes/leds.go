@@ -52,6 +52,7 @@ func (lc *LEDController) FlashLEDs(t *TrafficLight) {
 func NewLEDController() *LEDController {
 	l := &LEDController{enabled: globals.EnableLEDs, gpio2bcm: defaultgpio2bcm}
 	l.Open()
+	l.ClearAll()
 	return l
 }
 

@@ -77,7 +77,6 @@ func (tm *TrafficManager) Start() {
 			time.Sleep(tm.program.clockSpeed)
 		}
 	}()
-
 }
 
 // Stop - Stop trafficmanager and trafficlights

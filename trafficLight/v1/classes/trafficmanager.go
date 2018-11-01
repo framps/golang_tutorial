@@ -33,11 +33,9 @@ func NewTrafficManager(ledController *LEDController, trafficLights []*TrafficLig
 
 // LoadProgram - load new program in trafficlights
 func (tm *TrafficManager) LoadProgram(program *Program) {
-	debugMessage("TM: Load %s\n", program.Name)
 	tm.program = program
 	idxint := 0
 	for i := range tm.trafficLights {
-		debugMessage("%d: Loading %d - Phase: %d\n", i, idxint, len(tm.program.Phases))
 		tm.trafficLights[i].Load(idxint, *tm.program)
 		idxint = (idxint + len(tm.program.Phases)/2) % len(tm.program.Phases)
 	}
@@ -45,10 +43,9 @@ func (tm *TrafficManager) LoadProgram(program *Program) {
 
 // Start - Start trafficmanager and manage trafficlights
 func (tm *TrafficManager) Start() {
-	debugMessage("TM: Start\n")
 	d := make(chan int)
 
-	// Display trafficlights on terminal if requested
+	// Display trafficlights on terminal if enabled
 	go func() {
 		cnt := 0
 		for {

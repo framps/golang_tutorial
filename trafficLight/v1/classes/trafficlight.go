@@ -39,7 +39,6 @@ func NewTrafficLight(number int, leds LEDs) (t *TrafficLight) {
 
 // Load - Load new program
 func (t *TrafficLight) Load(startPhase int, program Program) {
-	debugMessage("TL %v: Load\n", t.number)
 	t.program = program
 	t.program.state = startPhase
 }
@@ -51,7 +50,6 @@ func (t *TrafficLight) String() string {
 
 // On - Turn trafficlight on
 func (t *TrafficLight) On(callBack chan int, lc *LEDController) {
-	debugMessage("TL %v: On\n", t.number)
 	t.lc = lc
 	t.on = true
 	go func() {

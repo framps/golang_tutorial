@@ -43,7 +43,7 @@ func main() {
 	tm := classes.NewTrafficManager(lc, trafficLights)
 
 	ctrlc := make(chan os.Signal, 1)
-	signal.Notify(ctrlc, os.Interrupt, syscall.SIGTERM)
+	signal.Notify(ctrlc, os.Interrupt, syscall.SIGTERM, syscall.SIGHUP)
 
 	type ProgramChunk struct {
 		program  *classes.Program
@@ -64,6 +64,7 @@ func main() {
 	// start traffic manager
 	tm.Start()
 
+	// listen for CTRLC
 	done := make(chan struct{})
 	go func() {
 		<-ctrlc
@@ -71,8 +72,8 @@ func main() {
 		done <- struct{}{}
 	}()
 
+	// loop though list of programs
 	go func() {
-		// loop though list of programs
 		for {
 			for _, p := range programs {
 				if globals.Monitor {
@@ -84,6 +85,7 @@ func main() {
 		}
 	}()
 
+	// wait for CTRLC
 	<-done
 	fmt.Print("Done received")
 	tm.Stop()

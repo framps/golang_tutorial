@@ -4,6 +4,8 @@
 
 Two trafficlights TL1 and TL2 are simulated (see below their location in the crossing). A traffic light manager loads different traffic light programs in an endless loop, runs them for 15 seconds and switches to the next program. All programs are separated by a 5 second warning blink program which blinks the yellow LEDs. CTRL-C will terminate the endless loop.
 
+Either build the executable for Raspberry with `buildAndRun` or just execute `trafficlight_arm`.
+
 ### Location of traffic lights
 
 ```
@@ -58,19 +60,17 @@ Programs are a sequence of tuples which define the LEDs to light and how long th
 
 | light | green | yellow  | red |
 | ----- |:-----:| -------:| --: |
-| 0     | off   | off     | off |
-| 1     | on    | off     | off |
-| 2     | off   | on      | off |
-| 3     | off   | off     | on  |
-| 4     | off   | on      | on  |
+| 0     |       |         |     |
+| 1     | on    |         |     |
+| 2     |       | on      |     |
+| 3     |       |         | on  |
+| 4     |       | on      | on  |
 
 #### ticks
 
 Defines the duration to light LED and is the number of ticks received from traffic manager
 
 #### programs.json
-
-Config file: programs.json
 
 ```
 {

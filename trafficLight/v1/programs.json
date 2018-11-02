@@ -1,0 +1,73 @@
+{
+   "Normal1": {
+      "name": "Normal1",
+      "phases": [
+         {
+            "light": 1,
+            "ticks": 3
+         },
+         {
+            "light": 2,
+            "ticks": 2
+         },
+         {
+            "light": 3,
+            "ticks": 4
+         },
+         {
+            "light": 4,
+            "ticks": 1
+         }
+      ]
+   },
+   "Normal2": {
+      "name": "Normal2",
+      "phases": [
+         {
+            "light": 1,
+            "ticks": 4
+         },
+         {
+            "light": 2,
+            "ticks": 1
+         },
+         {
+            "light": 3,
+            "ticks": 4
+         },
+         {
+            "light": 4,
+            "ticks": 1
+         }
+      ]
+   },
+   "Normal3": {
+      "name": "Normal3",
+      "phases": [
+         {
+            "light": 1,
+            "ticks": 4
+         },
+         {
+            "light": 2,
+            "ticks": 1
+         },
+         {
+            "light": 2,
+            "ticks": 1
+         },
+         {
+            "light": 3,
+            "ticks": 4
+         },
+         {
+            "light": 3,
+            "ticks": 1
+         },
+         {
+            "light": 4,
+            "ticks": 1
+         }
+      ]
+   }
+}

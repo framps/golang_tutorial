@@ -11,8 +11,6 @@ package classes
 import (
 	"fmt"
 	"time"
-
-	"github.com/framps/golang_tutorial/trafficLight/v1/globals"
 )
 
 // TrafficManager -
@@ -50,7 +48,7 @@ func (tm *TrafficManager) Start() {
 		cnt := 0
 		for {
 			<-d
-			if globals.Monitor {
+			if Monitor {
 				cnt++
 				if cnt >= len(tm.trafficLights) {
 					for i := range tm.trafficLights {
@@ -74,7 +72,7 @@ func (tm *TrafficManager) Start() {
 			for i := range tm.trafficLights {
 				tm.trafficLights[i].c <- struct{}{} // send new tick
 			}
-			time.Sleep(tm.program.clockSpeed)
+			time.Sleep(tm.program.ClockSpeed)
 		}
 	}()
 }

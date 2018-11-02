@@ -16,8 +16,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/framps/golang_tutorial/trafficLight/v1/classes"
-	"github.com/framps/golang_tutorial/trafficLight/v1/globals"
+	"github.com/framps/golang_tutorial/trafficLight/classes"
 )
 
 func main() {
@@ -29,9 +28,8 @@ func main() {
 		T2LEDs = classes.LEDs{[...]int{5, 6, 7}}
 	)
 
-	flag.BoolVar(&globals.Debug, "debug", false, "Write debug messages")
-	flag.BoolVar(&globals.Monitor, "monitor", true, "Monitor LEDs on screen")
-	flag.BoolVar(&globals.EnableLEDs, "leds", false, "Drive LEDs")
+	flag.BoolVar(&classes.Monitor, "monitor", true, "Monitor LEDs on screen")
+	flag.BoolVar(&classes.EnableLEDs, "leds", false, "Drive LEDs")
 	flag.Parse()
 
 	lc := classes.NewLEDController()
@@ -61,7 +59,6 @@ func main() {
 		programs = append(programs,
 			ProgramChunk{program: classes.ProgramWarning,
 				duration: time.Second * 5})
-		fmt.Printf("Loading program %v\n", p)
 		programs = append(programs,
 			ProgramChunk{program: p,
 				duration: time.Second * 15})
@@ -82,8 +79,7 @@ func main() {
 	go func() {
 		for {
 			for _, p := range programs {
-				fmt.Printf("- %v\n", p)
-				if globals.Monitor {
+				if classes.Monitor {
 					fmt.Printf("Running program %s for %s\n", p.program.Name, p.duration)
 				}
 				tm.LoadProgram(p.program)
@@ -94,7 +90,7 @@ func main() {
 
 	// wait for CTRLC
 	<-done
-	fmt.Print("Done received\n")
+	lc.Save()
 	programRepository.Save()
 	tm.Stop()
 	os.Exit(0)

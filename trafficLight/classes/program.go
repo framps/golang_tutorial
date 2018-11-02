@@ -25,7 +25,7 @@ const (
 )
 
 const (
-	repositoryFile     = "programs.json"
+	programFile        = "programs.json"
 	ProgramWarningName = "Warning"
 	ProgramTestName    = "Test"
 )
@@ -35,16 +35,16 @@ type ProgramRepository map[string]*Program
 
 // Phase consists of light and number of ticks to flash the lights
 type Phase struct {
-	Light int `json:"light"`
-	Ticks int `json:"ticks"`
+	Lights int `json:"lights"`
+	Ticks  int `json:"ticks"`
 }
 
 // Program - Has phases and a state (active phase)
 type Program struct {
-	Name       string        `json:"name"`
-	Phases     []Phase       `json:"phases"`
-	state      int           `json:"state"`
-	clockSpeed time.Duration `json:"clock_speed"`
+	Name       string  `json:"name"`
+	Phases     []Phase `json:"phases"`
+	state      int
+	ClockSpeed time.Duration `json:"clock_speed"`
 }
 
 // ProgramTest - Turn every lamp on
@@ -57,7 +57,7 @@ var ProgramTest = &Program{
 		Phase{green, 1},
 		Phase{yellow, 1},
 	},
-	clockSpeed: time.Millisecond * 50,
+	ClockSpeed: time.Millisecond * 50,
 }
 
 // ProgramWarning - Traffic light is not working, just blink
@@ -67,7 +67,7 @@ var ProgramWarning = &Program{
 		Phase{yellow, 1},
 		Phase{off, 1},
 	},
-	clockSpeed: time.Millisecond * 500,
+	ClockSpeed: time.Millisecond * 500,
 }
 
 // ProgramNormal1 - Just the common traffic light
@@ -80,7 +80,7 @@ var ProgramNormal1 = &Program{
 		Phase{red, 4},
 		Phase{redyellow, 1},
 	},
-	clockSpeed: time.Second * 1,
+	ClockSpeed: time.Second * 1,
 }
 
 // ProgramNormal2 - Just the common traffic light
@@ -93,7 +93,7 @@ var ProgramNormal2 = &Program{
 		Phase{red, 4},
 		Phase{redyellow, 1},
 	},
-	clockSpeed: time.Second * 1,
+	ClockSpeed: time.Second * 1,
 }
 
 // ProgramNormal3 - Just the common traffic light
@@ -108,7 +108,7 @@ var ProgramNormal3 = &Program{
 		Phase{red, 1},
 		Phase{redyellow, 1},
 	},
-	clockSpeed: time.Second * 1,
+	ClockSpeed: time.Second * 1,
 }
 
 func NewProgramRepository() ProgramRepository {
@@ -123,21 +123,20 @@ func NewProgramRepository() ProgramRepository {
 	prc, err := prd.Load()
 	if err == nil {
 		// Add Test and Warning programs
-		fmt.Printf("Using custom programs defined in %s\n", repositoryFile)
+		fmt.Printf("Using custom programs defined in %s\n", programFile)
 		prc[ProgramTest.Name] = ProgramTest
 		prc[ProgramWarning.Name] = ProgramWarning
 		return prc
 	}
-	fmt.Printf("%s\n", err.Error())
 	fmt.Printf("Using default programs\n")
 	return prd
 }
 
 // Load -
 func (pr *ProgramRepository) Load() (ProgramRepository, error) {
-	file, e := ioutil.ReadFile(repositoryFile)
+	file, e := ioutil.ReadFile(programFile)
 	if e != nil { // error
-		fmt.Printf("%s read error: %v\n", repositoryFile, e)
+		fmt.Printf("%s read error: %v\n", programFile, e)
 		return nil, e
 	}
 	var repository ProgramRepository
@@ -151,18 +150,5 @@ func (pr *ProgramRepository) Load() (ProgramRepository, error) {
 
 // Save -
 func (pr *ProgramRepository) Save() error {
-
-	b, e := json.MarshalIndent(pr, "", "   ")
-	if e != nil {
-		fmt.Printf("JSON marshal error: %v\n", e)
-		return e
-	}
-
-	e = ioutil.WriteFile(repositoryFile, b, 0644)
-	if e != nil { // error
-		fmt.Printf("%s write error: %v\n", repositoryFile, e)
-		return e
-	}
-	fmt.Printf("Saving %s\n", repositoryFile)
-	return nil
+	return SaveJSON(pr, programFile)
 }

@@ -14,7 +14,6 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/framps/golang_tutorial/trafficLight/v1/globals"
 	rpio "github.com/stianeikeland/go-rpio"
 )
 
@@ -38,7 +37,7 @@ type LEDController struct {
 
 // FlashLEDs -
 func (lc *LEDController) FlashLEDs(t *TrafficLight) {
-	l := phaseString[t.program.Phases[t.program.state].Light]
+	l := phaseString[t.program.Phases[t.program.state].Lights]
 	for i := 0; i < len(l); i += 2 {
 		if l[i] == byte('.') {
 			lc.Off(t.leds.Pin[i/2])
@@ -50,7 +49,7 @@ func (lc *LEDController) FlashLEDs(t *TrafficLight) {
 
 // NewLEDController -
 func NewLEDController() *LEDController {
-	l := &LEDController{enabled: globals.EnableLEDs, gpio2bcm: defaultgpio2bcm}
+	l := &LEDController{enabled: EnableLEDs, gpio2bcm: defaultgpio2bcm}
 	l.Open()
 	l.ClearAll()
 	return l
@@ -78,10 +77,8 @@ func (lc *LEDController) Open() {
 
 		defs, err := lc.ReadGPIOConfig()
 		if err == nil {
-			if globals.Monitor {
-				fmt.Printf("GPIO mapping to pins 0-7: %v\n", defs)
-			}
 			lc.gpio2bcm = *defs
+			fmt.Printf("Using custom GPIO mappings defined in %s\n", gPIOFile)
 		} else {
 			fmt.Printf("Using default GPIO mapping to pins 0-7: %v\n", defs)
 		}
@@ -126,4 +123,9 @@ func (lc *LEDController) Off(gpio int) {
 	pin := rpio.Pin(lc.gpio2bcm[gpio])
 	pin.Output()
 	pin.Low()
+}
+
+// Save -
+func (lc *LEDController) Save() error {
+	return SaveJSON(lc.gpio2bcm, gPIOFile)
 }

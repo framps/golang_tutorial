@@ -56,15 +56,15 @@ The mapping from GPIOs to pins is defined in GPIO.json. Traffic light programs a
 
 Programs are a sequence of tuples which define the LEDs to light and how long they are displayed (number of ticks from traffic manager).
 
-#### light
+#### lights
 
-| light | green | yellow  | red |
-| ----- |:-----:| -------:| --: |
-| 0     |       |         |     |
-| 1     | on    |         |     |
-| 2     |       | on      |     |
-| 3     |       |         | on  |
-| 4     |       | on      | on  |
+| lights | green | yellow  | red |
+| ------ |:-----:| -------:| --: |
+| 0      |       |         |     |
+| 1      | on    |         |     |
+| 2      |       | on      |     |
+| 3      |       |         | on  |
+| 4      |       | on      | on  |
 
 #### ticks
 
@@ -78,19 +78,19 @@ Defines the duration to light LED and is the number of ticks received from traff
       "name": "Normal1",
       "phases": [
          {
-            "light": 1,
+            "lights": 1,
             "ticks": 3
          },
          {
-            "light": 2,
+            "lights": 2,
             "ticks": 2
          },
          {
-            "light": 3,
+            "lights": 3,
             "ticks": 4
          },
          {
-            "light": 4,
+            "lights": 4,
             "ticks": 1
          }
       ]
@@ -99,19 +99,19 @@ Defines the duration to light LED and is the number of ticks received from traff
       "name": "Normal2",
       "phases": [
          {
-            "light": 1,
+            "lights": 1,
             "ticks": 4
          },
          {
-            "light": 2,
+            "lights": 2,
             "ticks": 1
          },
          {
-            "light": 3,
+            "lights": 3,
             "ticks": 4
          },
          {
-            "light": 4,
+            "lights": 4,
             "ticks": 1
          }
       ]
@@ -120,23 +120,23 @@ Defines the duration to light LED and is the number of ticks received from traff
       "name": "Normal3",
       "phases": [
          {
-            "light": 1,
+            "lights": 1,
             "ticks": 4
          },
          {
-            "light": 2,
+            "lights": 2,
             "ticks": 1
          },
          {
-            "light": 2,
+            "lights": 2,
             "ticks": 1
          },
          {
-            "light": 3,
+            "lights": 3,
             "ticks": 4
          },
          {
-            "light": 3,
+            "lights": 3,
             "ticks": 1
          },
          {
@@ -150,10 +150,8 @@ Defines the duration to light LED and is the number of ticks received from traff
 
 ## Program options
 ```
--debug
-     Write debug messages
 -leds
-     Drive LEDs
+     Use LEDs connected to GPIOs (run on Raspberry)
 -monitor
-     Monitor LEDs on screen (default true)
+     Simulate LEDs on screen (default true) (run on any non Raspberry system)
 ```

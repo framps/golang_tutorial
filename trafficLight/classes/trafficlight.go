@@ -10,8 +10,6 @@ package classes
 
 import (
 	"fmt"
-
-	"github.com/framps/golang_tutorial/trafficLight/v1/globals"
 )
 
 // ascii representation of phase lamps (Green, Yellow, Red, Read and Yellow )
@@ -45,7 +43,7 @@ func (t *TrafficLight) Load(startPhase int, program Program) {
 
 // Implement Stringer interface to display a readable form of the traffic light
 func (t *TrafficLight) String() string {
-	return fmt.Sprintf("<%d>: %s |", t.number, phaseString[t.program.Phases[t.program.state].Light])
+	return fmt.Sprintf("<%d>: %s |", t.number, phaseString[t.program.Phases[t.program.state].Lights])
 }
 
 // On - Turn trafficlight on
@@ -59,7 +57,7 @@ func (t *TrafficLight) On(callBack chan int, lc *LEDController) {
 				break
 			}
 			t.Advance() // next trafficlight phase
-			if globals.EnableLEDs {
+			if EnableLEDs {
 				t.lc.FlashLEDs(t)
 			}
 			callBack <- t.number

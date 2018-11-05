@@ -83,24 +83,49 @@ Defines the duration to light LED and is the number of ticks received from traff
          },
          {
             "lights": 2,
-            "ticks": 2
+            "ticks": 1
          },
          {
             "lights": 3,
-            "ticks": 4
+            "ticks": 1
+         },
+         {
+            "lights": 3,
+            "ticks": 1
+         },
+         {
+            "lights": 3,
+            "ticks": 3
+         },
+         {
+            "lights": 3,
+            "ticks": 3
+         },
+         {
+            "lights": 3,
+            "ticks": 1
+         },
+         {
+            "lights": 3,
+            "ticks": 1
          },
          {
             "lights": 4,
             "ticks": 1
+         },
+         {
+            "lights": 1,
+            "ticks": 3
          }
-      ]
+      ],
+      "clock_speed": 1000000000
    },
    "Normal2": {
       "name": "Normal2",
       "phases": [
          {
             "lights": 1,
-            "ticks": 4
+            "ticks": 3
          },
          {
             "lights": 2,
@@ -108,20 +133,37 @@ Defines the duration to light LED and is the number of ticks received from traff
          },
          {
             "lights": 3,
-            "ticks": 4
+            "ticks": 1
+         },
+         {
+            "lights": 3,
+            "ticks": 3
+         },
+         {
+            "lights": 3,
+            "ticks": 3
+         },
+         {
+            "lights": 3,
+            "ticks": 1
          },
          {
             "lights": 4,
             "ticks": 1
+         },
+         {
+            "lights": 1,
+            "ticks": 3
          }
-      ]
+      ],
+      "clock_speed": 1000000000
    },
    "Normal3": {
       "name": "Normal3",
       "phases": [
          {
             "lights": 1,
-            "ticks": 4
+            "ticks": 3
          },
          {
             "lights": 2,
@@ -133,17 +175,18 @@ Defines the duration to light LED and is the number of ticks received from traff
          },
          {
             "lights": 3,
-            "ticks": 4
+            "ticks": 3
          },
          {
             "lights": 3,
             "ticks": 1
          },
          {
-            "light": 4,
+            "lights": 4,
             "ticks": 1
          }
-      ]
+      ],
+      "clock_speed": 1000000000
    }
 }
 ```

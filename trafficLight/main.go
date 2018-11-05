@@ -54,8 +54,9 @@ func main() {
 	programs := make([]ProgramChunk, 0, len(programRepository))
 	programs = append(programs,
 		ProgramChunk{program: classes.ProgramTest,
-			duration: time.Second * 1})
+			duration: time.Millisecond * 250})
 	for _, p := range programRepository {
+		fmt.Printf("Loading program %s\n", p.Name)
 		programs = append(programs,
 			ProgramChunk{program: classes.ProgramWarning,
 				duration: time.Second * 5})

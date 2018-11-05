@@ -70,15 +70,20 @@ var ProgramWarning = &Program{
 	ClockSpeed: time.Millisecond * 500,
 }
 
-// ProgramNormal1 - Just the common traffic light
 var ProgramNormal1 = &Program{
 	Name: "Normal1",
 	Phases: []Phase{
 		Phase{green, 3},
-		Phase{yellow, 2},
+		Phase{yellow, 1},
+		Phase{red, 1},
+		Phase{red, 1},
+		Phase{red, 3},
 
-		Phase{red, 4},
+		Phase{red, 3},
+		Phase{red, 1},
+		Phase{red, 1},
 		Phase{redyellow, 1},
+		Phase{green, 3},
 	},
 	ClockSpeed: time.Second * 1,
 }
@@ -87,11 +92,15 @@ var ProgramNormal1 = &Program{
 var ProgramNormal2 = &Program{
 	Name: "Normal2",
 	Phases: []Phase{
-		Phase{green, 4},
+		Phase{green, 3},
 		Phase{yellow, 1},
+		Phase{red, 1},
+		Phase{red, 3},
 
-		Phase{red, 4},
+		Phase{red, 3},
+		Phase{red, 1},
 		Phase{redyellow, 1},
+		Phase{green, 3},
 	},
 	ClockSpeed: time.Second * 1,
 }
@@ -100,11 +109,11 @@ var ProgramNormal2 = &Program{
 var ProgramNormal3 = &Program{
 	Name: "Normal3",
 	Phases: []Phase{
-		Phase{green, 4},
+		Phase{green, 3},
 		Phase{yellow, 1},
 		Phase{yellow, 1},
 
-		Phase{red, 4},
+		Phase{red, 3},
 		Phase{red, 1},
 		Phase{redyellow, 1},
 	},

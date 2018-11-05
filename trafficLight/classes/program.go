@@ -132,20 +132,20 @@ func NewProgramRepository() ProgramRepository {
 	prc, err := prd.Load()
 	if err == nil {
 		// Add Test and Warning programs
-		fmt.Printf("Using custom programs defined in %s\n", programFile)
+		fmt.Printf("Using custom traffic programs defined in %s\n", programFile)
 		prc[ProgramTest.Name] = ProgramTest
 		prc[ProgramWarning.Name] = ProgramWarning
 		return prc
+	} else {
+		fmt.Printf("Using default traffic programs\n")
+		return prd
 	}
-	fmt.Printf("Using default programs\n")
-	return prd
 }
 
 // Load -
 func (pr *ProgramRepository) Load() (ProgramRepository, error) {
 	file, e := ioutil.ReadFile(programFile)
 	if e != nil { // error
-		fmt.Printf("%s read error: %v\n", programFile, e)
 		return nil, e
 	}
 	var repository ProgramRepository

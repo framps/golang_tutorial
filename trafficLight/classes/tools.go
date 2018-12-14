@@ -9,14 +9,23 @@ package classes
 // See github.com/framps/golang_tutorial for latest code
 
 import (
+	"encoding/json"
 	"fmt"
-
-	"github.com/framps/golang_tutorial/trafficLight/globals"
+	"io/ioutil"
 )
 
-// Debugging helper
-func debugMessage(f string, p ...interface{}) {
-	if globals.Debug {
-		fmt.Printf(f, p...)
+// SaveJSON -
+func SaveJSON(object interface{}, f string) error {
+	b, e := json.MarshalIndent(object, "", "   ")
+	if e != nil {
+		fmt.Printf("JSON marshal error: %v\n", e)
+		return e
 	}
+	e = ioutil.WriteFile(f, b, 0644)
+	if e != nil { // error
+		fmt.Printf("%s write error: %v\n", f, e)
+		return e
+	}
+	fmt.Printf("Saving %s\n", f)
+	return nil
 }

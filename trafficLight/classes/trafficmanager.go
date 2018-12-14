@@ -11,64 +11,59 @@ package classes
 import (
 	"fmt"
 	"time"
-
-	"github.com/framps/golang_tutorial/trafficLight/globals"
 )
 
 // TrafficManager -
 type TrafficManager struct {
 	trafficLights []*TrafficLight
-	lc            *LEDController
 	program       *Program
+	onoff         chan bool
+	ledController *LEDController // controller to driver LEDs
 }
 
 // NewTrafficManager -
-func NewTrafficManager(trafficLights []*TrafficLight, ledController *LEDController) *TrafficManager {
-	tm := &TrafficManager{trafficLights: trafficLights, lc: ledController}
-	tm.StartProgram(ProgramWarning)
+func NewTrafficManager(ledController *LEDController, trafficLights []*TrafficLight) *TrafficManager {
+	tm := &TrafficManager{trafficLights: trafficLights, ledController: ledController}
+	tm.LoadProgram(ProgramTest)
+	tm.onoff = make(chan bool)
 	return tm
 }
 
-// StartProgram -
-func (tm *TrafficManager) StartProgram(program *Program) {
+// LoadProgram - load new program in trafficlights
+func (tm *TrafficManager) LoadProgram(program *Program) {
 	tm.program = program
 	idxint := 0
 	for i := range tm.trafficLights {
 		tm.trafficLights[i].Load(idxint, *tm.program)
-		idxint = (idxint + len(tm.trafficLights)/2) % len(tm.trafficLights)
+		idxint = (idxint + len(tm.program.Phases)/2) % len(tm.program.Phases)
 	}
 }
 
-// On -
-func (tm *TrafficManager) On() {
-
+// Start - Start trafficmanager and manage trafficlights
+func (tm *TrafficManager) Start() {
 	d := make(chan int)
 
-	go func(update chan int) {
-		var cnt int
+	// Display trafficlights on terminal if enabled
+	go func() {
+		cnt := 0
 		for {
-			<-update
-			cnt++
-			if cnt >= len(tm.trafficLights) {
-				for i := range tm.trafficLights {
-					if globals.Monitor {
+			<-d
+			if Monitor {
+				cnt++
+				if cnt >= len(tm.trafficLights) {
+					for i := range tm.trafficLights {
 						fmt.Printf("%s   ", tm.trafficLights[i].String())
 					}
-					if globals.EnableLEDs {
-						tm.trafficLights[i].FlashLEDs(tm.lc)
-					}
-				}
-				if globals.Monitor {
 					fmt.Println()
+					cnt = 0
 				}
-				cnt = 0
 			}
 		}
-	}(d)
+	}()
 
 	// start all trafficlights to run in parallel
 	for i := range tm.trafficLights {
-		go tm.trafficLights[i].Run(d)
+		tm.trafficLights[i].On(d, tm.ledController)
 	}
 
 	// send ticks to traffic lights
@@ -77,7 +72,15 @@ func (tm *TrafficManager) On() {
 			for i := range tm.trafficLights {
 				tm.trafficLights[i].c <- struct{}{} // send new tick
 			}
-			time.Sleep(tm.program.clockSpeed)
+			time.Sleep(tm.program.ClockSpeed)
 		}
 	}()
+}
+
+// Stop - Stop trafficmanager and trafficlights
+func (tm *TrafficManager) Stop() {
+	for _, l := range tm.trafficLights {
+		l.Off()
+	}
+	tm.ledController.Close()
 }

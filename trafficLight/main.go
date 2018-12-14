@@ -10,58 +10,89 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
 	"github.com/framps/golang_tutorial/trafficLight/classes"
-	"github.com/framps/golang_tutorial/trafficLight/globals"
 )
 
 func main() {
 
 	// GPIO#s: red, yellow, green
+	// GPIO numbers to BCM GPIO numbers mapping defined in GPIO.json
 	var (
 		T1LEDs = classes.LEDs{[...]int{2, 3, 4}}
 		T2LEDs = classes.LEDs{[...]int{5, 6, 7}}
 	)
 
-	flag.BoolVar(&globals.Debug, "debug", false, "Write debug messages")
-	flag.BoolVar(&globals.Monitor, "monitor", true, "Monitor LEDs on screen")
-	flag.BoolVar(&globals.EnableLEDs, "leds", false, "Drive LEDs")
+	flag.BoolVar(&classes.Monitor, "monitor", true, "Monitor LEDs on screen")
+	flag.BoolVar(&classes.EnableLEDs, "leds", false, "Drive LEDs")
 	flag.Parse()
+
+	lc := classes.NewLEDController()
 
 	trafficLights := []*classes.TrafficLight{
 		classes.NewTrafficLight(0, T1LEDs),
 		classes.NewTrafficLight(1, T2LEDs)}
 
-	lc := classes.NewLEDController()
-	tm := classes.NewTrafficManager(trafficLights, lc)
+	tm := classes.NewTrafficManager(lc, trafficLights)
 
+	ctrlc := make(chan os.Signal, 1)
+	signal.Notify(ctrlc, os.Interrupt, syscall.SIGTERM, syscall.SIGHUP)
+
+	type ProgramChunk struct {
+		program  *classes.Program
+		duration time.Duration
+	}
+
+	programRepository := classes.NewProgramRepository()
+
+	// programs to run
+	programs := make([]ProgramChunk, 0, len(programRepository))
+	programs = append(programs,
+		ProgramChunk{program: classes.ProgramTest,
+			duration: time.Millisecond * 250})
+	for _, p := range programRepository {
+		fmt.Printf("Loading program %s\n", p.Name)
+		programs = append(programs,
+			ProgramChunk{program: classes.ProgramWarning,
+				duration: time.Second * 5})
+		programs = append(programs,
+			ProgramChunk{program: p,
+				duration: time.Second * 15})
+	}
+
+	// start traffic manager
+	tm.Start()
+
+	// listen for CTRLC
 	done := make(chan struct{})
-
-	c := make(chan os.Signal, 1)
-	//	signal.Notify(c, os.Interrupt, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
-	signal.Notify(c, syscall.SIGTERM)
 	go func() {
-		<-c
+		<-ctrlc
+		fmt.Printf("CTRLC")
 		done <- struct{}{}
 	}()
 
-	tm.On()
+	// loop though list of programs
+	go func() {
+		for {
+			for _, p := range programs {
+				if classes.Monitor {
+					fmt.Printf("Running program %s for %s\n", p.program.Name, p.duration)
+				}
+				tm.LoadProgram(p.program)
+				time.Sleep(p.duration)
+			}
+		}
+	}()
 
-	for {
-		time.Sleep(time.Second * 5)
-		tm.StartProgram(classes.ProgramTest)
-		time.Sleep(time.Second * 5)
-		tm.StartProgram(classes.ProgramNormal)
-		time.Sleep(time.Second * 30)
-		tm.StartProgram(classes.ProgramWarning)
-
-		<-done
-		lc.Close()
-		os.Exit(1)
-	}
-
+	// wait for CTRLC
+	<-done
+	lc.Save()
+	programRepository.Save()
+	tm.Stop()
+	os.Exit(0)
 }

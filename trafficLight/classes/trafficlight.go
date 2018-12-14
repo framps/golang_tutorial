@@ -17,22 +17,25 @@ var phaseString = []string{". . .", ". . G", ". Y .", "R . .", "R Y ."}
 
 // TrafficLight -
 type TrafficLight struct {
-	number  int           // light number
-	ticks   int           // ticks received
-	program Program       // program to execute
-	leds    LEDs          // LEDs to use
-	c       chan struct{} // tick channel to liston on
+	number  int            // light number
+	ticks   int            // ticks received
+	program Program        // program to execute
+	leds    LEDs           // LEDs to use
+	c       chan struct{}  // tick channel to liston on
+	lc      *LEDController // controller to driver LEDs
+	on      bool           // on/off flag
 }
 
 // NewTrafficLight -- Create a new trafficlight
 func NewTrafficLight(number int, leds LEDs) (t *TrafficLight) {
 	c := make(chan struct{})
-	t = &TrafficLight{number: number, ticks: 0, program: *ProgramWarning, leds: leds, c: c}
+	t = &TrafficLight{number: number, ticks: 0,
+		program: *ProgramTest, leds: leds, c: c}
 	t.program.state = 1
 	return t
 }
 
-// Load -
+// Load - Load new program
 func (t *TrafficLight) Load(startPhase int, program Program) {
 	t.program = program
 	t.program.state = startPhase
@@ -43,35 +46,33 @@ func (t *TrafficLight) String() string {
 	return fmt.Sprintf("<%d>: %s |", t.number, phaseString[t.program.Phases[t.program.state].Lights])
 }
 
-// FlashLEDs -
-func (t *TrafficLight) FlashLEDs(lightController *LEDController) {
-	l := phaseString[t.program.Phases[t.program.state].Lights]
-	for i := 0; i < len(l); i += 2 {
-		if l[i] == byte('.') {
-			lightController.Off(t.leds.Pin[i/2])
-		} else {
-			lightController.On(t.leds.Pin[i/2])
+// On - Turn trafficlight on
+func (t *TrafficLight) On(callBack chan int, lc *LEDController) {
+	t.lc = lc
+	t.on = true
+	go func() {
+		for {
+			<-t.c // wait for tick
+			if !t.on {
+				break
+			}
+			t.Advance() // next trafficlight phase
+			if EnableLEDs {
+				t.lc.FlashLEDs(t)
+			}
+			callBack <- t.number
 		}
-	}
+	}()
 }
 
-// Run - run traffic light program
-func (t *TrafficLight) Run(callBack chan int) {
-
-	for {
-		debugMessage("%v: Waiting ...\n", t.number)
-		<-t.c // wait for tick
-		debugMessage("%v: Advancing ...\n", t.number)
-		t.Advance() // next trafficlight phase
-		callBack <- t.number
-	}
+// Off - Turn trafficlight off
+func (t *TrafficLight) Off() {
+	t.on = false
 }
 
 // Advance -- Advances a trafficlight to next phase
 func (t *TrafficLight) Advance() {
-	debugMessage("%v: Got tick\n", t.number)
 	if t.ticks++; t.ticks >= t.program.Phases[t.program.state].Ticks {
-		debugMessage("%v: Next phase\n", t.number)
 		t.program.state = (t.program.state + 1) % len(t.program.Phases)
 		t.ticks = 0
 	}

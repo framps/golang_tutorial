@@ -14,44 +14,47 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
-
-	"github.com/jinzhu/copier"
 )
 
+// URL Constants -
 const (
-	COUNTRY_CSV_FILE = "https://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip"
-	COUNTRY_INFO_URL = "http://download.geonames.org/export/dump/countryInfo.txt"
+	CountrCsvFileURL = "https://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip"
+	CountryInfoURL   = "http://download.geonames.org/export/dump/countryInfo.txt"
 )
 
+// Country -
 type Country struct {
 	Code string
 	Name string
 }
 
+// Countries -
 type Countries map[string]Country
 
 func main() {
 
-	csvFile, err := DownloadFile(COUNTRY_CSV_FILE)
+	csvFile, err := DownloadFile(CountrCsvFileURL)
 	HandleError(err)
 
 	files, err := Unzip(csvFile, ".")
 	HandleError(err)
 
-	countryFileName, err := DownloadFile(COUNTRY_INFO_URL)
+	countryFileName, err := DownloadFile(CountryInfoURL)
 	HandleError(err)
 
 	InitialCountries := Countries{
-		"6255146", Country{"Africa", "AF"},
-		"6255147": Country{"Asia", "AS"},
-		"6255148": Country{"Europe", "EU"},
-		"6255149", Country{"North America", "NA"},
-		"6255150", Country{"South America", "SA"},
-		"6255151", Country{"Oceania", "OC"},
-		"6255152": Country{"Antarctica", "AN"},
+		"6255146": Country{"AF", "Africa"},
+		"6255147": Country{"AS", "Asia"},
+		"6255148": Country{"EU", "Europe"},
+		"6255149": Country{"NA", "North America"},
+		"6255150": Country{"SA", "South America"},
+		"6255151": Country{"OC", "Oceania"},
+		"6255152": Country{"AN", "Antarctica"},
 	}
 	countries := ParseCountries(countryFileName)
-	copier.Copy(&countries, &InitialCountries)
+	for k, v := range InitialCountries {
+		countries[k] = v
+	}
 
 	for _, c := range countries {
 		fmt.Printf("%v\n", c)
@@ -60,12 +63,14 @@ func main() {
 	_ = files
 }
 
+// HandleError -
 func HandleError(err error) {
 	if err != nil {
 		panic(err)
 	}
 }
 
+// DownloadFile -
 func DownloadFile(url string) (string, error) {
 	fmt.Println("Retrieving", url)
 	resp, err := http.Get(url)
@@ -83,6 +88,7 @@ func DownloadFile(url string) (string, error) {
 	return filename, err
 }
 
+// Unzip -
 func Unzip(src string, dest string) ([]string, error) {
 
 	var filenames []string
@@ -117,6 +123,7 @@ func Unzip(src string, dest string) ([]string, error) {
 	return filenames, nil
 }
 
+// ParseCountries -
 func ParseCountries(fileName string) Countries {
 
 	fmt.Printf("Parsing %s\n", fileName)
@@ -129,7 +136,7 @@ func ParseCountries(fileName string) Countries {
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		l := scanner.Text()
-		if strings.HasSuffix(l, "#") {
+		if strings.HasPrefix(l, "#") {
 			continue
 		}
 		tokens := strings.SplitN(scanner.Text(), "\t", -1)

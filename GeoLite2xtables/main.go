@@ -14,6 +14,8 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+
+	"github.com/jinzhu/copier"
 )
 
 const (
@@ -39,7 +41,17 @@ func main() {
 	countryFileName, err := DownloadFile(COUNTRY_INFO_URL)
 	HandleError(err)
 
+	InitialCountries := Countries{
+		"6255146", Country{"Africa", "AF"},
+		"6255147": Country{"Asia", "AS"},
+		"6255148": Country{"Europe", "EU"},
+		"6255149", Country{"North America", "NA"},
+		"6255150", Country{"South America", "SA"},
+		"6255151", Country{"Oceania", "OC"},
+		"6255152": Country{"Antarctica", "AN"},
+	}
 	countries := ParseCountries(countryFileName)
+	copier.Copy(&countries, &InitialCountries)
 
 	for _, c := range countries {
 		fmt.Printf("%v\n", c)
@@ -49,7 +61,7 @@ func main() {
 }
 
 func HandleError(err error) {
-	if err == nil {
+	if err != nil {
 		panic(err)
 	}
 }
@@ -116,6 +128,10 @@ func ParseCountries(fileName string) Countries {
 
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
+		l := scanner.Text()
+		if strings.HasSuffix(l, "#") {
+			continue
+		}
 		tokens := strings.SplitN(scanner.Text(), "\t", -1)
 		id := tokens[16]
 		c := Country{Code: tokens[0], Name: tokens[4]}

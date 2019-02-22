@@ -1,15 +1,22 @@
 package main
 
+// Samples used in a small go tutorial
+//
+// Copyright (C) 2019 framp at linux-tips-and-tricks dot de
+//
+// Samples for go using http calls, files and line parsing
+//
 // Inspired by https://github.com/mschmitt/GeoLite2xtables
-
-// Work in progress
 
 import (
 	"archive/zip"
 	"bufio"
 	"encoding/binary"
+	"flag"
 	"fmt"
 	"io"
+	"io/ioutil"
+	"log"
 	"math/big"
 	"net"
 	"net/http"
@@ -25,6 +32,8 @@ import (
 const (
 	CountrCsvFileURL = "https://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip"
 	CountryInfoURL   = "http://download.geonames.org/export/dump/countryInfo.txt"
+	IPV4csv          = "GeoLite2-Country-CSV_20190219/GeoLite2-Country-Blocks-IPv4.csv"
+	IPV6csv          = "GeoLite2-Country-CSV_20190219/GeoLite2-Country-Blocks-IPv6.csv"
 )
 
 // Country -
@@ -48,14 +57,28 @@ type Countries map[string]Country
 
 func main() {
 
-	csvFile, err := DownloadFile(CountrCsvFileURL)
+	ipv4 := flag.Bool("4", true, "Use IPV4 addresses")
+	ipv6 := flag.Bool("6", false, "Use IPV6 addresses")
+	//debug := flag.Bool("d", false, "Write debug info")
+
+	flag.Parse()
+
+	cf, err := ioutil.TempFile("", "cf")
+	HandleError(err)
+	defer os.Remove(cf.Name())
+	err = DownloadFile(CountrCsvFileURL, cf)
 	HandleError(err)
 
-	//	files, err := Unzip(csvFile, ".")
-	_, err = Unzip(csvFile, ".")
+	cfd, err := ioutil.TempDir("", "cfd")
+	HandleError(err)
+	defer os.RemoveAll(cfd)
+	_, err = Unzip(cf, cfd)
 	HandleError(err)
 
-	countryFileName, err := DownloadFile(CountryInfoURL)
+	cif, err := ioutil.TempFile("", "cif")
+	HandleError(err)
+	defer os.Remove(cif.Name())
+	err = DownloadFile(CountryInfoURL, cif)
 	HandleError(err)
 
 	InitialCountries := Countries{
@@ -67,56 +90,53 @@ func main() {
 		"6255151": Country{"OC", "Oceania"},
 		"6255152": Country{"AN", "Antarctica"},
 	}
-	countries := ParseCountries(countryFileName)
+	countries := ParseCountries(cif)
 	for k, v := range InitialCountries {
 		countries[k] = v
 	}
 
-	for _, c := range countries {
-		fmt.Printf("%v\n", c)
+	if *ipv4 {
+		ParseCountryBlocks(cfd+"/"+IPV4csv, countries)
 	}
-
-	ParseCountryBlocks("./GeoLite2-Country-CSV_20190219/GeoLite2-Country-Blocks-IPv4.csv", countries)
-	ParseCountryBlocks("./GeoLite2-Country-CSV_20190219/GeoLite2-Country-Blocks-IPv6.csv", countries)
+	if *ipv6 {
+		ParseCountryBlocks(cfd+"/"+IPV6csv, countries)
+	}
 }
 
 // HandleError -
 func HandleError(err error) {
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 }
 
 // DownloadFile -
-func DownloadFile(url string) (string, error) {
-	fmt.Println("Retrieving", url)
+func DownloadFile(url string, file *os.File) error {
+	log.Println("Retrieving", url)
 	resp, err := http.Get(url)
 	HandleError(err)
 	defer resp.Body.Close()
 
 	_, filename := path.Split(url)
 	HandleError(err)
-	fmt.Println("Creating", filename)
-	out, err := os.Create(filename)
+	log.Println("Creating", filename)
+	_, err = io.Copy(file, resp.Body)
 	HandleError(err)
-	defer out.Close()
-	_, err = io.Copy(out, resp.Body)
-	HandleError(err)
-	return filename, err
+	return err
 }
 
 // Unzip -
-func Unzip(src string, dest string) ([]string, error) {
+func Unzip(src *os.File, dest string) ([]string, error) {
 
 	var filenames []string
 
-	fmt.Printf("Unzipping %s into %s\n", src, dest)
-	r, err := zip.OpenReader(src)
+	log.Printf("Unzipping %s into %s\n", src, dest)
+	r, err := zip.OpenReader(src.Name())
 	HandleError(err)
 	defer r.Close()
 
 	for _, f := range r.File {
-		fmt.Printf("Unzipping %s\n", f.Name)
+		log.Printf("Unzipping %s\n", f.Name)
 		rc, err := f.Open()
 		HandleError(err)
 		defer rc.Close()
@@ -126,7 +146,6 @@ func Unzip(src string, dest string) ([]string, error) {
 		if f.FileInfo().IsDir() {
 			os.MkdirAll(fpath, os.ModePerm)
 		} else {
-			// Make File
 			if err = os.MkdirAll(filepath.Dir(fpath), os.ModePerm); err != nil {
 				HandleError(err)
 			}
@@ -141,14 +160,10 @@ func Unzip(src string, dest string) ([]string, error) {
 }
 
 // ParseCountries -
-func ParseCountries(fileName string) Countries {
+func ParseCountries(file *os.File) Countries {
 
-	fmt.Printf("Parsing %s\n", fileName)
+	log.Printf("Parsing %s\n", file.Name())
 	countries := make(map[string]Country)
-
-	file, err := os.Open(fileName)
-	HandleError(err)
-	defer file.Close()
 
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
@@ -171,7 +186,7 @@ func ParseCountries(fileName string) Countries {
 // ParseCountryBlocks -
 func ParseCountryBlocks(fileName string, countries Countries) {
 
-	fmt.Printf("Parsing %s\n", fileName)
+	log.Printf("Parsing %s\n", fileName)
 
 	file, err := os.Open(fileName)
 	HandleError(err)
@@ -192,8 +207,6 @@ func ParseCountryBlocks(fileName string, countries Countries) {
 		tokens := strings.SplitN(scanner.Text(), ",", -1)
 		c := CountryBlock{tokens[0], tokens[1], tokens[2], tokens[3], tokens[4] != "0", tokens[5] != "0"}
 
-		//fmt.Printf("%#v", c)
-
 		_, ipnet, err := net.ParseCIDR(c.Network)
 		HandleError(err)
 		startIP, endIP := cidr.AddressRange(ipnet)
@@ -213,8 +226,6 @@ func ParseCountryBlocks(fileName string, countries Countries) {
 			fmt.Printf("\"%s\",\"%s\",\"%d\",\"%d\",\"%s\",\"%s\"\n",
 				startIP, endIP, startInt, endInt, code, name)
 		}
-
-		//os.Exit(0)
 	}
 
 	if err := scanner.Err(); err != nil {
@@ -246,31 +257,28 @@ func isIPv6(address string) bool {
 
 func getCountry(cb CountryBlock, countries Countries) Country {
 
-	if cb.IsAnonymousProxy {
-		return Country{"A1", "Anonymous Proxy"}
+	switch {
+	case cb.IsAnonymousProxy:
+		return Country{"A1",
+			"Anonymous Proxy"}
+	case cb.IsSatelliteProvider:
+		return Country{"A2",
+			"Satellite Provider"}
+	case len(cb.RepresentedCountryGeonameID) > 0:
+		return Country{countries[cb.RepresentedCountryGeonameID].Code,
+			countries[cb.RepresentedCountryGeonameID].Name}
+	case len(cb.RegisteredCountryGeonameID) > 0:
+		return Country{countries[cb.RegisteredCountryGeonameID].Code,
+			countries[cb.RegisteredCountryGeonameID].Name}
+	case len(cb.GeonameID) > 0:
+		return Country{countries[cb.GeonameID].Code,
+			countries[cb.GeonameID].Name}
+	default:
+		log.Printf("Unknown Geoname ID, panicking. This is a bug.\n")
+		log.Printf("ID: %s\n", cb.GeonameID)
+		log.Printf("ID Registered: %s\n", cb.RegisteredCountryGeonameID)
+		log.Printf("ID Represented %s\n", cb.RepresentedCountryGeonameID)
+		os.Exit(1)
+		return Country{}
 	}
-	if cb.IsSatelliteProvider {
-		return Country{"A2", "Satellite Provider"}
-	}
-	if len(cb.RepresentedCountryGeonameID) > 0 {
-		code := countries[cb.RepresentedCountryGeonameID].Code
-		name := countries[cb.RepresentedCountryGeonameID].Name
-		return Country{code, name}
-	}
-	if len(cb.RegisteredCountryGeonameID) > 0 {
-		code := countries[cb.RegisteredCountryGeonameID].Code
-		name := countries[cb.RegisteredCountryGeonameID].Name
-		return Country{code, name}
-	}
-	if len(cb.GeonameID) > 0 {
-		code := countries[cb.GeonameID].Code
-		name := countries[cb.GeonameID].Name
-		return Country{code, name}
-	}
-	fmt.Printf("Unknown Geoname ID, panicking. This is a bug.\n")
-	fmt.Printf("ID: %s\n", cb.GeonameID)
-	fmt.Printf("ID Registered: %s\n", cb.RegisteredCountryGeonameID)
-	fmt.Printf("ID Represented %s\n", cb.RepresentedCountryGeonameID)
-	os.Exit(1)
-	return Country{}
 }

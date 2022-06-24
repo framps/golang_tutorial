@@ -30,6 +30,7 @@ import (
 	"os"
 	"os/signal"
 	"regexp"
+	"strings"
 	"sync"
 	"time"
 
@@ -58,7 +59,8 @@ func isValid(u *url.URL) bool {
 	re := regexp.MustCompile(`(?i).*(\.(htm(l)?|jp(e)?g|mp4|pdf|sql))?$`)
 	m := re.MatchString(u.Path)
 	if m {
-		matchFile.WriteString(u.String() + "\n")
+		var url=strings.TrimSuffix(u.String(), "/")
+		matchFile.WriteString(url + "\n")
 		matches++
 	}
 	return m

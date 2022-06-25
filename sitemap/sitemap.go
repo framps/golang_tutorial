@@ -18,10 +18,7 @@
 // See page 243.
 
 // Crawl3 crawls web links starting with the command-line arguments.
-//
-// This version uses bounded parallelism.
-// For simplicity, it does not address the termination problem.
-//
+
 package main
 
 import (
@@ -37,15 +34,17 @@ import (
 	"github.com/framps/golang_tutorial/sitemap/links"
 )
 
-const maxWorkers = 20                   // number of crawl workers
-const lastSeenTimeout = time.Second * 3 // timeout for workers when there is no more work
+const maxWorkers = 20                    // number of crawl workers
+const lastSeenTimeout = time.Second * 30 // timeout for workers when there is no more work
 
 var (
 	matchFile  *os.File // receives list of domain urls
 	rejectFile *os.File // receives list of skipped urls and the skip reason
+	errorFile  *os.File // receives list of pages unable to retrieve
+	remoteFile *os.File // receives list of remote links
 )
 
-var matches, fails int // counter for matched and skipped urls
+var matches, fails, remotes, errors int // counter for matched and skipped urls
 
 // filter urls via a regex
 func isValid(u *url.URL) bool {
@@ -56,10 +55,10 @@ func isValid(u *url.URL) bool {
 	if len(u.Query()) > 0 { // no query allowed
 		return false
 	}
-	re := regexp.MustCompile(`(?i).*(\.(htm(l)?|jp(e)?g|mp4|pdf|sql))?$`)
+	re := regexp.MustCompile(`(?i).*(\.(htm(l)?|jp(e)?g|mp4|pdf|sql|sh|py|go))?$`)
 	m := re.MatchString(u.Path)
 	if m {
-		var url=strings.TrimSuffix(u.String(), "/")
+		var url = strings.TrimSuffix(u.String(), "/")
 		matchFile.WriteString(url + "\n")
 		matches++
 	}
@@ -73,7 +72,7 @@ func crawl(nr int, parseURL string, sourceURLs []string) []string {
 	if err != nil {
 		m := fmt.Sprintf("%2d: ??? URL parse error %s for %s\n", nr, err, parseURL)
 		fails++
-		rejectFile.WriteString(m)
+		errorFile.WriteString(m)
 		return []string{}
 	}
 
@@ -83,13 +82,13 @@ func crawl(nr int, parseURL string, sourceURLs []string) []string {
 			if e != nil {
 				m := fmt.Sprintf("%2d: ??? URL parse error %s for %s\n", nr, err, k)
 				fails++
-				rejectFile.WriteString(m)
+				errorFile.WriteString(m)
 				return []string{}
 			}
 			if pu.Hostname() != su.Hostname() || pu.Scheme != su.Scheme {
 				m := fmt.Sprintf("%2d: --- Remote URL %s\n", nr, parseURL)
-				fails++
-				rejectFile.WriteString(m)
+				remotes++
+				remoteFile.WriteString(m)
 				return []string{}
 			}
 			if !isValid(pu) {
@@ -106,8 +105,8 @@ func crawl(nr int, parseURL string, sourceURLs []string) []string {
 
 	if err != nil {
 		m := fmt.Sprintf("%2d: ??? Extract error %s for %s\n", nr, err, parseURL)
-		fails++
-		rejectFile.WriteString(m)
+		errors++
+		errorFile.WriteString(m)
 		return []string{}
 	}
 	return list
@@ -126,7 +125,6 @@ func main() {
 		panic(e)
 	}
 	defer func() {
-		fmt.Println("Closing matchfile")
 		matchFile.Close()
 	}()
 
@@ -135,8 +133,23 @@ func main() {
 		panic(e)
 	}
 	defer func() {
-		fmt.Println("Closing rejectfile")
 		rejectFile.Close()
+	}()
+
+	errorFile, e = os.Create("sitemap.error")
+	if e != nil {
+		panic(e)
+	}
+	defer func() {
+		errorFile.Close()
+	}()
+
+	remoteFile, e = os.Create("sitemap.remote")
+	if e != nil {
+		panic(e)
+	}
+	defer func() {
+		remoteFile.Close()
 	}()
 
 	signalChan := make(chan os.Signal, 1)
@@ -158,6 +171,8 @@ func main() {
 	go func() {
 		worklist <- os.Args[1:]
 	}()
+
+	start := time.Now()
 
 	activeWorkers.Add(maxWorkers)
 	// Create crawler goroutines to fetch each unseen link.
@@ -199,7 +214,9 @@ func main() {
 
 	fmt.Printf("Waiting for %d workers to finish ...\n", maxWorkers)
 	activeWorkers.Wait()
-	fmt.Printf("Found pages: %d\nSkipped pages: %d\n", matches, fails)
-	rejectFile.Close()
-	matchFile.Close()
+	fmt.Printf("Found pages: %d\nSkipped pages: %d\nRemote pages: %d\nUrl errors %d\n", matches, fails, remotes, errors)
+
+	elapsed := time.Since(start)
+	fmt.Printf("Sitemap creation for %s took %s", sourceURLs, elapsed)
+
 }

@@ -23,6 +23,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/url"
 	"os"
 	"os/signal"
@@ -217,6 +218,10 @@ func main() {
 	fmt.Printf("Found pages: %d\nSkipped pages: %d\nRemote pages: %d\nUrl errors %d\n", matches, fails, remotes, errors)
 
 	elapsed := time.Since(start)
+<<<<<<< HEAD
 	fmt.Printf("Sitemap creation for %s took %s", sourceURLs, elapsed)
+=======
+	log.Printf("Sitemap creation for %s took %s", sourceURLs, elapsed)
+>>>>>>> 45876b014c62bc0d8fb1db955b2730838567d6c8
 
 }

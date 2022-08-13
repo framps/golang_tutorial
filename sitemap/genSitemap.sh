@@ -28,7 +28,7 @@ if [[ -z $1 ]]; then
   exit 1
 fi
 
-if [[ -f "./sitema" ]]; then
+if [[ -f "./sitemap" ]]; then
    ./sitemap "$1"
 else
    if ! which go; then

@@ -46,7 +46,7 @@ while read line; do
   echo "   </url>" >> $SITEMAP
   echo >> $SITEMAP
   ((urlsFound++))
-done < <(sort sitemap.match | uniq)
+done < <(sort sitemapGen.match | uniq)
 
 echo "</urlset>" >> $SITEMAP
 

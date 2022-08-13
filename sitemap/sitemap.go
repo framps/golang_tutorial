@@ -120,7 +120,7 @@ func main() {
 	abort := make(chan bool, 1)      // channel to signal abort to worker
 
 	var e error
-	matchFile, e = os.Create("sitemap.match")
+	matchFile, e = os.Create("sitemapGen.match")
 	if e != nil {
 		panic(e)
 	}
@@ -128,7 +128,7 @@ func main() {
 		matchFile.Close()
 	}()
 
-	rejectFile, e = os.Create("sitemap.reject")
+	rejectFile, e = os.Create("sitemapGen.reject")
 	if e != nil {
 		panic(e)
 	}
@@ -136,7 +136,7 @@ func main() {
 		rejectFile.Close()
 	}()
 
-	errorFile, e = os.Create("sitemap.error")
+	errorFile, e = os.Create("sitemapGen.error")
 	if e != nil {
 		panic(e)
 	}
@@ -144,7 +144,7 @@ func main() {
 		errorFile.Close()
 	}()
 
-	remoteFile, e = os.Create("sitemap.remote")
+	remoteFile, e = os.Create("sitemapGen.remote")
 	if e != nil {
 		panic(e)
 	}

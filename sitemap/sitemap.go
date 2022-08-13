@@ -23,7 +23,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net/url"
 	"os"
 	"os/signal"
@@ -58,11 +57,6 @@ func isValid(u *url.URL) bool {
 	}
 	re := regexp.MustCompile(`(?i).*(\.(htm(l)?|jp(e)?g|mp4|pdf|sql|sh|py|go))?$`)
 	m := re.MatchString(u.Path)
-	if m {
-		var url = strings.TrimSuffix(u.String(), "/")
-		matchFile.WriteString(url + "\n")
-		matches++
-	}
 	return m
 }
 
@@ -109,7 +103,12 @@ func crawl(nr int, parseURL string, sourceURLs []string) []string {
 		errors++
 		errorFile.WriteString(m)
 		return []string{}
+	} else {
+		var url = strings.TrimSuffix(parseURL, "/")
+		matchFile.WriteString(url + "\n")
+		matches++
 	}
+
 	return list
 }
 
@@ -218,10 +217,6 @@ func main() {
 	fmt.Printf("Found pages: %d\nSkipped pages: %d\nRemote pages: %d\nUrl errors %d\n", matches, fails, remotes, errors)
 
 	elapsed := time.Since(start)
-<<<<<<< HEAD
 	fmt.Printf("Sitemap creation for %s took %s", sourceURLs, elapsed)
-=======
-	log.Printf("Sitemap creation for %s took %s", sourceURLs, elapsed)
->>>>>>> 45876b014c62bc0d8fb1db955b2730838567d6c8
 
 }

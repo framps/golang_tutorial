@@ -28,7 +28,16 @@ if [[ -z $1 ]]; then
   exit 1
 fi
 
-go run sitemap.go "$1"
+if [[ -f "./sitema" ]]; then
+   ./sitemap "$1"
+else
+   if ! which go; then
+   	echo "golang not installed"
+	exit 1
+   else	
+	go run sitemap.go "$1"
+   fi
+fi	
 
 SITEMAP="sitemap.xml"
 urlsFound=0

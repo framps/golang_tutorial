@@ -37,6 +37,9 @@ import (
 const maxWorkers = 20                    // number of crawl workers
 const lastSeenTimeout = time.Second * 30 // timeout for workers when there is no more work
 
+const cpyRght1 = "Copyright © 2017 framp at linux-tips-and-tricks dot de"
+const cpyRght2 = "Copyright © 2016 Alan A. A. Donovan & Brian W. Kernighan"
+
 var (
 	matchFile  *os.File // receives list of domain urls
 	rejectFile *os.File // receives list of skipped urls and the skip reason
@@ -103,11 +106,11 @@ func crawl(nr int, parseURL string, sourceURLs []string) []string {
 		errors++
 		errorFile.WriteString(m)
 		return []string{}
-	} else {
-		var url = strings.TrimSuffix(parseURL, "/")
-		matchFile.WriteString(url + "\n")
-		matches++
 	}
+
+	var url = strings.TrimSuffix(parseURL, "/")
+	matchFile.WriteString(url + "\n")
+	matches++
 
 	return list
 }
@@ -115,6 +118,17 @@ func crawl(nr int, parseURL string, sourceURLs []string) []string {
 // parse a website and create a file with all same domain url links. Create a file which will log skipped urls and the skip reason
 
 func main() {
+
+	fmt.Println(cpyRght1)
+	fmt.Println(cpyRght2)
+	fmt.Println()
+
+	var args = os.Args[1:]
+
+	if len(args) == 0 {
+		fmt.Println("Missing URL")
+		os.Exit(1)
+	}
 
 	var activeWorkers sync.WaitGroup // waitgroup for active workers
 	abort := make(chan bool, 1)      // channel to signal abort to worker
@@ -155,7 +169,7 @@ func main() {
 	signalChan := make(chan os.Signal, 1)
 	signal.Notify(signalChan, os.Interrupt)
 	go func() {
-		for _ = range signalChan {
+		for range signalChan {
 			close(abort)
 			fmt.Println("\nReceived an interrupt, stopping ...")
 			activeWorkers.Wait()

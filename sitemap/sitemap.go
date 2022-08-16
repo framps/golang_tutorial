@@ -25,6 +25,7 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"flag"
 	"os/signal"
 	"regexp"
 	"strings"
@@ -34,20 +35,25 @@ import (
 	"github.com/framps/golang_tutorial/sitemap/links"
 )
 
-const maxWorkers = 20                    // number of crawl workers
-const lastSeenTimeout = time.Second * 30 // timeout for workers when there is no more work
+const outputName = "sitemap"
+const lastSeenTimeout = time.Second * 3 // timeout for workers when there is no more work
 
 const cpyRght1 = "Copyright © 2017 framp at linux-tips-and-tricks dot de"
 const cpyRght2 = "Copyright © 2016 Alan A. A. Donovan & Brian W. Kernighan"
 
 var (
 	matchFile  *os.File // receives list of domain urls
-	rejectFile *os.File // receives list of skipped urls and the skip reason
+	skippedFile *os.File // receives list of skipped urls and the skip reason
 	errorFile  *os.File // receives list of pages unable to retrieve
 	remoteFile *os.File // receives list of remote links
 )
 
-var matches, fails, remotes, errors int // counter for matched and skipped urls
+var (
+	debugFlag *bool
+  workerFlag *int
+)
+
+var matches, fails, skipped, remotes, errors int // counter for matched and skipped urls
 
 // filter urls via a regex
 func isValid(u *url.URL) bool {
@@ -91,14 +97,19 @@ func crawl(nr int, parseURL string, sourceURLs []string) []string {
 			}
 			if !isValid(pu) {
 				m := fmt.Sprintf("%2d: --- No match %s\n", nr, parseURL)
-				fails++
-				rejectFile.WriteString(m)
+				skipped++
+				skippedFile.WriteString(m)
 				return []string{}
 			}
 		}
 	}
 
-	fmt.Printf("%2d: Crawling %s\n", nr, parseURL)
+	if *debugFlag {
+		fmt.Printf("%2d: Crawling %s\n", nr, parseURL)
+	} else {
+		fmt.Printf(".")
+	}
+
 	list, err := links.Extract(parseURL)
 
 	if err != nil {
@@ -123,18 +134,24 @@ func main() {
 	fmt.Println(cpyRght2)
 	fmt.Println()
 
-	var args = os.Args[1:]
+	debugFlag = flag.Bool("debug", false, "Debug mode")
+	workerFlag = flag.Int("worker", 20, "Number of workers")
+	flag.Parse()
 
-	if len(args) == 0 {
-		fmt.Println("Missing URL")
+	args := flag.Args()
+
+	if len(args) != 1 {
+		fmt.Println("Missing URL to parse")
 		os.Exit(1)
 	}
+
+	fmt.Printf("Generating %s.xml for %s\n",outputName,args[0])
 
 	var activeWorkers sync.WaitGroup // waitgroup for active workers
 	abort := make(chan bool, 1)      // channel to signal abort to worker
 
 	var e error
-	matchFile, e = os.Create("sitemapGen.match")
+	matchFile, e = os.Create(outputName+".match")
 	if e != nil {
 		panic(e)
 	}
@@ -142,15 +159,15 @@ func main() {
 		matchFile.Close()
 	}()
 
-	rejectFile, e = os.Create("sitemapGen.reject")
+	skippedFile, e = os.Create(outputName+".skipped")
 	if e != nil {
 		panic(e)
 	}
 	defer func() {
-		rejectFile.Close()
+		skippedFile.Close()
 	}()
 
-	errorFile, e = os.Create("sitemapGen.error")
+	errorFile, e = os.Create(outputName+".error")
 	if e != nil {
 		panic(e)
 	}
@@ -158,7 +175,7 @@ func main() {
 		errorFile.Close()
 	}()
 
-	remoteFile, e = os.Create("sitemapGen.remote")
+	remoteFile, e = os.Create(outputName+".remote")
 	if e != nil {
 		panic(e)
 	}
@@ -179,7 +196,7 @@ func main() {
 	worklist := make(chan []string)  // lists of URLs, may have duplicates
 	unseenLinks := make(chan string) // de-duplicated URLs
 
-	sourceURLs := os.Args[1:] // first arg are the domains to crawl
+	sourceURLs := args // first arg are the domains to crawl
 
 	// Add command-line argument to worklist.
 	go func() {
@@ -188,9 +205,9 @@ func main() {
 
 	start := time.Now()
 
-	activeWorkers.Add(maxWorkers)
+	activeWorkers.Add(*workerFlag)
 	// Create crawler goroutines to fetch each unseen link.
-	for i := 0; i < maxWorkers; i++ {
+	for i := 0; i < *workerFlag; i++ {
 		go func(nr int, abort chan bool) {
 			for {
 				select {
@@ -200,11 +217,15 @@ func main() {
 						worklist <- foundLinks
 					}()
 				case <-time.After(lastSeenTimeout): // timer will expire if there is no more work to do
-					fmt.Printf("%2d: Worker idle for %s and now terminating\n", nr, lastSeenTimeout)
+					if *debugFlag {
+						fmt.Printf("%2d: Worker idle for %s and now terminating\n", nr, lastSeenTimeout)
+					}
 					activeWorkers.Done()
 					return
 				case <-abort:
-					fmt.Printf("%2d: Worker aborted and now terminating\n", nr)
+					if *debugFlag {
+						fmt.Printf("%2d: Worker aborted and now terminating\n", nr)
+					}
 					activeWorkers.Done()
 					return
 				}
@@ -226,9 +247,9 @@ func main() {
 		}
 	}()
 
-	fmt.Printf("Waiting for %d workers to finish ...\n", maxWorkers)
+	fmt.Printf("Waiting for %d workers to finish ...\n", *workerFlag)
 	activeWorkers.Wait()
-	fmt.Printf("Found pages: %d\nSkipped pages: %d\nRemote pages: %d\nUrl errors %d\n", matches, fails, remotes, errors)
+	fmt.Printf("\nPages found: %d\nPages skipped: %d\nRemote pages: %d\nInvalid URLs %d\n", matches, skipped, remotes, errors)
 
 	elapsed := time.Since(start)
 	fmt.Printf("Sitemap creation for %s took %s", sourceURLs, elapsed)

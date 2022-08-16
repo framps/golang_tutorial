@@ -28,16 +28,15 @@ if [[ -z $1 ]]; then
   exit 1
 fi
 
-if [[ -f "./sitemap" ]]; then
-   ./sitemap "$1"
-else
+if [[ ! -f sitemap ]] || [[ sitemap.go -nt sitemap ]]; then
    if ! which go; then
-   	echo "golang not installed"
-	exit 1
-   else	
-	go run sitemap.go "$1"
+   	 echo "golang not installed"
+	   exit 1
+   else
+     go build sitemap.go
    fi
-fi	
+fi
+./sitemap "$@"
 
 SITEMAP="sitemap.xml"
 urlsFound=0
@@ -59,8 +58,9 @@ while read line; do
   echo "   </url>" >> $SITEMAP
   echo >> $SITEMAP
   ((urlsFound++))
-done < <(sort sitemapGen.match | uniq)
+done < <(sort sitemap.match | uniq)
 
+echo "<-- Detected URLS: $urlsFound -->" >> $SITEMAP
 echo "</urlset>" >> $SITEMAP
 
 echo

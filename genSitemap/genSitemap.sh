@@ -65,7 +65,7 @@ while read line; do
   ((urlsFound++))
 done < <(sort $MYNAME.match | uniq)
 
-echo "<-!- Detected URLS: $urlsFound -->" >> $SITEMAP
+echo "<!-- Detected URLS: $urlsFound -->" >> $SITEMAP
 echo "</urlset>" >> $SITEMAP
 
 echo

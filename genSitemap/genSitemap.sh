@@ -57,7 +57,7 @@ echo "<!-- =====================================================================
 while read line; do
   echo "   <url>" >> $SITEMAP
   echo "      <loc>$line</loc>" >> $SITEMAP
-  echo "      <lastmod>2022-06-24</lastmod>" >> $SITEMAP
+  echo "      <lastmod>2022-09-24</lastmod>" >> $SITEMAP
   echo "      <changefreq>weekly</changefreq>" >> $SITEMAP
   echo "      <priority>0.69</priority>" >> $SITEMAP
   echo "   </url>" >> $SITEMAP

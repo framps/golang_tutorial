@@ -81,6 +81,7 @@ func crawl(nr int, parseURL string, sourceURLs []string) []string {
 	}
 
 	for _, k := range sourceURLs {
+
 		if parseURL != k {
 			su, e := url.Parse(k)
 			if e != nil {
@@ -140,7 +141,7 @@ func main() {
 
 	args := flag.Args()
 
-	if len(args) != 1 {
+	if len(args) < 1 {
 		fmt.Println("Missing URL to parse")
 		os.Exit(1)
 	}
@@ -198,7 +199,7 @@ func main() {
 
 	sourceURLs := args // first arg are the domains to crawl
 
-	// Add command-line argument to worklist.
+	// Add command-line arguments to worklist.
 	go func() {
 		worklist <- os.Args[1:]
 	}()

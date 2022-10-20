@@ -24,6 +24,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"net/http"
 	"net/url"
 	"os"
 	"os/signal"
@@ -37,8 +38,9 @@ import (
 
 const outputName = "genSitemap"
 const lastSeenTimeout = time.Second * 3 // timeout for workers when there is no more work
+const httpClientTimeout = 10 * time.Second
 
-const cpyRght1 = "Copyright © 2017 framp at linux-tips-and-tricks dot de"
+const cpyRght1 = "Copyright © 2017,2022 framp at linux-tips-and-tricks dot de"
 const cpyRght2 = "Copyright © 2016 Alan A. A. Donovan & Brian W. Kernighan"
 
 var (
@@ -55,6 +57,11 @@ var (
 
 var matches, fails, skipped, remotes, errors int // counter for matched and skipped urls
 
+type linkRef struct {
+	parent string
+	link   string
+}
+
 // filter urls via a regex
 func isValid(u *url.URL) bool {
 
@@ -70,9 +77,9 @@ func isValid(u *url.URL) bool {
 }
 
 // crawl urls
-func crawl(nr int, parseURL string, sourceURLs []string) []string {
+func crawl(nr int, parseURL linkRef, sourceURLs []string) []string {
 
-	pu, err := url.Parse(parseURL)
+	pu, err := url.Parse(parseURL.link)
 	if err != nil {
 		m := fmt.Sprintf("%2d: ??? URL parse error %s for %s\n", nr, err, parseURL)
 		fails++
@@ -82,7 +89,7 @@ func crawl(nr int, parseURL string, sourceURLs []string) []string {
 
 	for _, k := range sourceURLs {
 
-		if parseURL != k {
+		if parseURL.link != k {
 			su, e := url.Parse(k)
 			if e != nil {
 				m := fmt.Sprintf("%2d: ??? URL parse error %s for %s\n", nr, err, k)
@@ -91,7 +98,20 @@ func crawl(nr int, parseURL string, sourceURLs []string) []string {
 				return []string{}
 			}
 			if pu.Hostname() != su.Hostname() || pu.Scheme != su.Scheme {
-				m := fmt.Sprintf("%2d: --- Remote URL %s\n", nr, parseURL)
+
+				var m string
+				client := http.Client{
+					Timeout: httpClientTimeout,
+				}
+				resp, err := client.Get(parseURL.link)
+				if err != nil {
+					m = fmt.Sprintf("%2d: ??? Remote URL error for %s: %s\n", nr, parseURL, err)
+				} else if resp.StatusCode != http.StatusOK {
+					resp.Body.Close()
+					m = fmt.Sprintf("%2d: ??? Remote URL error for %s: %s\n", nr, parseURL, resp.Status)
+				} else {
+					m = fmt.Sprintf("%2d: --- Remote URL %s\n", nr, parseURL)
+				}
 				remotes++
 				remoteFile.WriteString(m)
 				return []string{}
@@ -106,21 +126,29 @@ func crawl(nr int, parseURL string, sourceURLs []string) []string {
 	}
 
 	if *debugFlag {
-		fmt.Printf("%2d: Crawling %s\n", nr, parseURL)
+		fmt.Printf("%2d: --- Crawling %s\n", nr, parseURL)
 	} else {
 		fmt.Printf(".")
 	}
 
-	list, err := links.Extract(parseURL)
+	list, err := links.Extract(parseURL.link)
+
+	/*
+		if *debugFlag {
+			for _, u := range list {
+				fmt.Printf("%2d: +++ Crawled %s\n", nr, u)
+			}
+		}
+	*/
 
 	if err != nil {
-		m := fmt.Sprintf("%2d: ??? Extract error %s for %s\n", nr, err, parseURL)
+		m := fmt.Sprintf("%2d: ??? Extract error %s from %s\n", nr, err, parseURL)
 		errors++
 		errorFile.WriteString(m)
 		return []string{}
 	}
 
-	var url = strings.TrimSuffix(parseURL, "/")
+	var url = strings.TrimSuffix(parseURL.link, "/")
 	matchFile.WriteString(url + "\n")
 	matches++
 
@@ -194,14 +222,18 @@ func main() {
 		}
 	}()
 
-	worklist := make(chan []string)  // lists of URLs, may have duplicates
-	unseenLinks := make(chan string) // de-duplicated URLs
+	worklist := make(chan []linkRef)  // lists of URLs, may have duplicates
+	unseenLinks := make(chan linkRef) // de-duplicated URLs
 
 	sourceURLs := args // first arg are the domains to crawl
 
 	// Add command-line arguments to worklist.
 	go func() {
-		worklist <- os.Args[1:]
+		var l []linkRef
+		for i := range os.Args[1:] {
+			l = append(l, linkRef{"", os.Args[i+1]})
+		}
+		worklist <- l
 	}()
 
 	start := time.Now()
@@ -214,18 +246,22 @@ func main() {
 				select {
 				case link := <-unseenLinks:
 					foundLinks := crawl(nr, link, sourceURLs)
+					var l []linkRef
+					for _, ll := range foundLinks {
+						l = append(l, linkRef{link.link, ll})
+					}
 					go func() {
-						worklist <- foundLinks
+						worklist <- l
 					}()
 				case <-time.After(lastSeenTimeout): // timer will expire if there is no more work to do
 					if *debugFlag {
-						fmt.Printf("%2d: Worker idle for %s and now terminating\n", nr, lastSeenTimeout)
+						fmt.Printf("%2d: --- Worker idle for %s and now terminating\n", nr, lastSeenTimeout)
 					}
 					activeWorkers.Done()
 					return
 				case <-abort:
 					if *debugFlag {
-						fmt.Printf("%2d: Worker aborted and now terminating\n", nr)
+						fmt.Printf("%2d: ??? Worker aborted and now terminating\n", nr)
 					}
 					activeWorkers.Done()
 					return
@@ -240,8 +276,8 @@ func main() {
 		seen := make(map[string]bool)
 		for list := range worklist {
 			for _, link := range list {
-				if !seen[link] {
-					seen[link] = true
+				if !seen[link.link] {
+					seen[link.link] = true
 					unseenLinks <- link
 				}
 			}

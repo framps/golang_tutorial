@@ -62,6 +62,10 @@ type linkRef struct {
 	link   string
 }
 
+func (l linkRef) String() string {
+	return fmt.Sprintf("%s <- %s", l.link,l.parent)
+}
+
 // filter urls via a regex
 func isValid(u *url.URL) bool {
 
@@ -230,8 +234,8 @@ func main() {
 	// Add command-line arguments to worklist.
 	go func() {
 		var l []linkRef
-		for i := range os.Args[1:] {
-			l = append(l, linkRef{"", os.Args[i+1]})
+		for i := range sourceURLs {
+			l = append(l, linkRef{"", sourceURLs[i]})
 		}
 		worklist <- l
 	}()

@@ -1,2 +1,7 @@
 sitemapGen.*
 sitemap.xml
+*.error
+*.matched
+*.remote
+*.match
+*.skipped

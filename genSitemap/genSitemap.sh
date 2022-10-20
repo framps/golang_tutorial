@@ -33,8 +33,8 @@ fi
 
 if [[ ! -f $MYNAME ]] || [[ $MYNAME.go -nt $MYNAME ]]; then
    if ! which go >/dev/null ; then
-   	 echo "golang not installed"
-	   exit 1
+     echo "golang not installed"
+     exit 1
    else
      go build $MYNAME.go
    fi

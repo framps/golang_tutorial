@@ -38,7 +38,8 @@ import (
 
 const outputName = "genSitemap"
 const lastSeenTimeout = time.Second * 3 // timeout for workers when there is no more work
-const httpClientTimeout = 10 * time.Second
+const httpClientTimeout = 30 * time.Second
+const userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:105.0) Gecko/20100101 Firefox/105.0"
 
 const cpyRght1 = "Copyright © 2017,2022 framp at linux-tips-and-tricks dot de"
 const cpyRght2 = "Copyright © 2016 Alan A. A. Donovan & Brian W. Kernighan"
@@ -107,7 +108,15 @@ func crawl(nr int, parseURL linkRef, sourceURLs []string) []string {
 				client := http.Client{
 					Timeout: httpClientTimeout,
 				}
-				resp, err := client.Get(parseURL.link)
+
+				req, err := http.NewRequest("GET", parseURL.link, nil)
+
+				var resp *http.Response
+				if err == nil {
+					req.Header.Set("User-Agent", userAgent)
+					resp, err = client.Do(req)
+				}
+
 				if err != nil {
 					m = fmt.Sprintf("%2d: ??? Remote URL error for %s: %s\n", nr, parseURL, err)
 				} else if resp.StatusCode != http.StatusOK {

@@ -15,7 +15,8 @@ import (
 	"golang.org/x/net/html"
 )
 
-const httpClientTimeout = 10 * time.Second
+const httpClientTimeout = 30 * time.Second
+const userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:105.0) Gecko/20100101 Firefox/105.0"
 
 // Extract makes an HTTP GET request to the specified URL, parses
 // the response as HTML, and returns the links in the HTML document.
@@ -25,7 +26,14 @@ func Extract(url string) ([]string, error) {
 		Timeout: httpClientTimeout,
 	}
 
-	resp, err := client.Get(url)
+	req, err := http.NewRequest("GET", url, nil)
+
+	var resp *http.Response
+	if err == nil {
+		req.Header.Set("User-Agent", userAgent)
+		resp, err = client.Do(req)
+	}
+
 	if err != nil {
 		return nil, err
 	}

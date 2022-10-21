@@ -32,13 +32,14 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"golang.org/x/net/html"
 
 	"github.com/framps/golang_tutorial/sitemap/links"
 )
 
 const outputName = "genSitemap"
-const lastSeenTimeout = time.Second * 3 // timeout for workers when there is no more work
-const httpClientTimeout = 30 * time.Second
+const lastSeenTimeout = time.Second * 1 // timeout for workers when there is no more work
+const httpClientTimeout = 15 * time.Second // http get timeout
 const userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:105.0) Gecko/20100101 Firefox/105.0"
 
 const cpyRght1 = "Copyright © 2017,2022 framp at linux-tips-and-tricks dot de"
@@ -49,6 +50,7 @@ var (
 	skippedFile *os.File // receives list of skipped urls and the skip reason
 	errorFile   *os.File // receives list of pages unable to retrieve
 	remoteFile  *os.File // receives list of remote links
+	remoteFileNotfound  *os.File // receives list of remote links which cannot be resolved
 )
 
 var (
@@ -56,7 +58,9 @@ var (
 	workerFlag *int
 )
 
-var matches, fails, skipped, remotes, errors int // counter for matched and skipped urls
+var crawled, notfound, matches, fails, skipped, remotes, errors int // counter for matched and skipped urls
+
+var aborted = false
 
 type linkRef struct {
 	parent string
@@ -65,6 +69,67 @@ type linkRef struct {
 
 func (l linkRef) String() string {
 	return fmt.Sprintf("%s <- %s", l.link,l.parent)
+}
+// Extract makes an HTTP GET request to the specified URL, parses
+// the response as HTML, and returns the links in the HTML document.
+func Extract(url string) ([]string, error) {
+
+	client := http.Client{
+		Timeout: httpClientTimeout,
+	}
+
+	req, err := http.NewRequest("GET", url, nil)
+
+	var resp *http.Response
+	if err == nil {
+		req.Header.Set("User-Agent", userAgent)
+		resp, err = client.Do(req)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != http.StatusOK {
+		resp.Body.Close()
+		return nil, fmt.Errorf("%d: %s",  resp.StatusCode, url)
+	}
+
+	doc, err := html.Parse(resp.Body)
+	resp.Body.Close()
+	if err != nil {
+		return nil, fmt.Errorf("%s: %s", err, url)
+	}
+
+	var links []string
+	visitNode := func(n *html.Node) {
+		if n.Type == html.ElementNode && n.Data == "a" {
+			for _, a := range n.Attr {
+				if a.Key != "href" {
+					continue
+				}
+				link, err := resp.Request.URL.Parse(a.Val)
+				if err != nil {
+					continue // ignore bad URLs
+				}
+				links = append(links, link.String())
+			}
+		}
+	}
+	forEachNode(doc, visitNode, nil)
+	return links, nil
+}
+
+// Copied from gopl.io/ch5/outline2.
+func forEachNode(n *html.Node, pre, post func(n *html.Node)) {
+	if pre != nil {
+		pre(n)
+	}
+	for c := n.FirstChild; c != nil; c = c.NextSibling {
+		forEachNode(c, pre, post)
+	}
+	if post != nil {
+		post(n)
+	}
 }
 
 // filter urls via a regex
@@ -76,7 +141,7 @@ func isValid(u *url.URL) bool {
 	if len(u.Query()) > 0 { // no query allowed
 		return false
 	}
-	re := regexp.MustCompile(`(?i).*(\.(htm(l)?|jp(e)?g|mp4|pdf|sql|sh|py|go))?$`)
+	re := regexp.MustCompile(`(?i).*(\.(htm(l)?|jp(e)?g|mp4|pdf|sql|sh|py|go|mp4|img|png))?$`)
 	m := re.MatchString(u.Path)
 	return m
 }
@@ -84,9 +149,11 @@ func isValid(u *url.URL) bool {
 // crawl urls
 func crawl(nr int, parseURL linkRef, sourceURLs []string) []string {
 
+	crawled++
+
 	pu, err := url.Parse(parseURL.link)
 	if err != nil {
-		m := fmt.Sprintf("%2d: ??? URL parse error %s for %s\n", nr, err, parseURL)
+		m := fmt.Sprintf("%s for %s (%2d)\n", err, parseURL, nr)
 		fails++
 		errorFile.WriteString(m)
 		return []string{}
@@ -97,7 +164,7 @@ func crawl(nr int, parseURL linkRef, sourceURLs []string) []string {
 		if parseURL.link != k {
 			su, e := url.Parse(k)
 			if e != nil {
-				m := fmt.Sprintf("%2d: ??? URL parse error %s for %s\n", nr, err, k)
+				m := fmt.Sprintf("%s for %s (%2d)\n",  err, k,nr)
 				fails++
 				errorFile.WriteString(m)
 				return []string{}
@@ -118,19 +185,25 @@ func crawl(nr int, parseURL linkRef, sourceURLs []string) []string {
 				}
 
 				if err != nil {
-					m = fmt.Sprintf("%2d: ??? Remote URL error for %s: %s\n", nr, parseURL, err)
+					m = fmt.Sprintf("%s for %s (%2d)\n",  err, parseURL,nr)
+					notfound++
+					remoteFileNotfound.WriteString(m)
+					return []string{}
 				} else if resp.StatusCode != http.StatusOK {
 					resp.Body.Close()
-					m = fmt.Sprintf("%2d: ??? Remote URL error for %s: %s\n", nr, parseURL, resp.Status)
+					m = fmt.Sprintf("%s for %s (%2d)\n", resp.Status, parseURL,nr)
+					notfound++
+					remoteFileNotfound.WriteString(m)
+					return []string{}
 				} else {
-					m = fmt.Sprintf("%2d: --- Remote URL %s\n", nr, parseURL)
-				}
+					m = fmt.Sprintf("%s (%2d)\n",  parseURL,nr)
 				remotes++
 				remoteFile.WriteString(m)
 				return []string{}
 			}
+			}
 			if !isValid(pu) {
-				m := fmt.Sprintf("%2d: --- No match %s\n", nr, parseURL)
+				m := fmt.Sprintf("%s (%2d)\n", parseURL, nr)
 				skipped++
 				skippedFile.WriteString(m)
 				return []string{}
@@ -140,8 +213,9 @@ func crawl(nr int, parseURL linkRef, sourceURLs []string) []string {
 
 	if *debugFlag {
 		fmt.Printf("%2d: --- Crawling %s\n", nr, parseURL)
-	} else {
-		fmt.Printf(".")
+	} else {		
+		// fmt.Printf(".")
+		fmt.Printf("Pages crawled: %d\r",crawled)
 	}
 
 	list, err := links.Extract(parseURL.link)
@@ -155,7 +229,7 @@ func crawl(nr int, parseURL linkRef, sourceURLs []string) []string {
 	*/
 
 	if err != nil {
-		m := fmt.Sprintf("%2d: ??? Extract error %s from %s\n", nr, err, parseURL)
+		m := fmt.Sprintf("%s for %s (%2d)\n", err, parseURL,nr)
 		errors++
 		errorFile.WriteString(m)
 		return []string{}
@@ -209,6 +283,14 @@ func main() {
 		skippedFile.Close()
 	}()
 
+	remoteFileNotfound, e = os.Create(outputName + ".notfound")
+	if e != nil {
+		panic(e)
+	}
+	defer func() {
+		skippedFile.Close()
+	}()
+
 	errorFile, e = os.Create(outputName + ".error")
 	if e != nil {
 		panic(e)
@@ -231,6 +313,7 @@ func main() {
 		for range signalChan {
 			close(abort)
 			fmt.Println("\nReceived an interrupt, stopping ...")
+			aborted=true
 			activeWorkers.Wait()
 		}
 	}()
@@ -299,9 +382,20 @@ func main() {
 
 	fmt.Printf("Waiting for %d workers to finish ...\n", *workerFlag)
 	activeWorkers.Wait()
-	fmt.Printf("\nPages found: %d\nPages skipped: %d\nRemote pages: %d\nInvalid URLs %d\n", matches, skipped, remotes, errors)
 
-	elapsed := time.Since(start)
-	fmt.Printf("Sitemap creation for %s took %s\n", sourceURLs, elapsed)
+	if ! aborted {
+		elapsed := time.Since(start)
+		fmt.Printf("\n%d pages crawled in %s on %s", crawled,elapsed,sourceURLs)
 
+		fmt.Printf(`
+Pages found: %d
+Pages skipped: %d
+Remote pages: %d
+Remote pages not found: %d
+Invalid URLs: %d`,
+			matches, skipped, remotes, notfound, errors)
+		os.Exit(0)
+	} else {
+		os.Exit(1)
+	}
 }

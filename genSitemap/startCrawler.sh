@@ -42,34 +42,39 @@ fi
 
 ./$MYNAME "$@"
 
-echo "Generating $SITEMAP ..."
+if (( ! $? )); then
 
-urlsFound=0
+  echo -e "\nGenerating $SITEMAP ..."
 
-rm -f $SITEMAP > /dev/null
+  urlsFound=0
 
-echo '<?xml version="1.0" encoding="UTF-8"?>' > $SITEMAP
-echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">' >> $SITEMAP
+  rm -f $SITEMAP > /dev/null
 
-dte=$(date +"%Y-%m-%d %H:%M:%S")
+  echo '<?xml version="1.0" encoding="UTF-8"?>' > $SITEMAP
+  echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">' >> $SITEMAP
 
-echo "<!-- ==================================================================================================== -->" >> $SITEMAP
-echo "<!-- Sitemap generated on $dte by genSitemap available on https://github.com/framps/golang_tutorial -->" >> $SITEMAP
-echo "<!-- ==================================================================================================== -->" >> $SITEMAP
+  dte=$(date +"%Y-%m-%d %H:%M:%S")
 
-while read line; do
-  echo "   <url>" >> $SITEMAP
-  echo "      <loc>$line</loc>" >> $SITEMAP
-  echo "      <lastmod>2022-09-24</lastmod>" >> $SITEMAP
-  echo "      <changefreq>weekly</changefreq>" >> $SITEMAP
-  echo "      <priority>0.69</priority>" >> $SITEMAP
-  echo "   </url>" >> $SITEMAP
-  echo >> $SITEMAP
-  ((urlsFound++))
-done < <(sort $MYNAME.match | uniq)
+  echo "<!-- ============================================================================================================= -->" >> $SITEMAP
+  echo "<!-- Sitemap generated on $dte by genSitemap available on https://github.com/framps/golang_tutorial -->" >> $SITEMAP
+  echo "<!-- ============================================================================================================= -->" >> $SITEMAP
 
-echo "<!-- Detected URLS: $urlsFound -->" >> $SITEMAP
-echo "</urlset>" >> $SITEMAP
+  while read line; do
+    echo "   <url>" >> $SITEMAP
+    echo "      <loc>$line</loc>" >> $SITEMAP
+    echo "      <lastmod>2022-09-24</lastmod>" >> $SITEMAP
+    echo "      <changefreq>weekly</changefreq>" >> $SITEMAP
+    echo "      <priority>0.69</priority>" >> $SITEMAP
+    echo "   </url>" >> $SITEMAP
+    echo >> $SITEMAP
+    ((urlsFound++))
+  done < <(sort $MYNAME.match | uniq)
 
-echo
-echo "URLs found: $urlsFound"
+  echo "<!-- Detected URLS: $urlsFound -->" >> $SITEMAP
+  echo "</urlset>" >> $SITEMAP
+
+  echo
+  echo "URLs found: $urlsFound"
+else
+  echo -e "\nSitemap generation aborted"
+fi

@@ -40,7 +40,9 @@ import (
 const outputName = "genSitemap"
 const lastSeenTimeout = time.Second * 1 // timeout for workers when there is no more work
 const httpClientTimeout = 15 * time.Second // http get timeout
-const userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:105.0) Gecko/20100101 Firefox/105.0"
+//const userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:105.0) Gecko/20100101 Firefox/105.0"
+
+const userAgent = "Mozilla/5.0 (X11; Linux x86_64; rv:106.0) Gecko/20100101 Firefox/106.0"
 
 const cpyRght1 = "Copyright © 2017,2022 framp at linux-tips-and-tricks dot de"
 const cpyRght2 = "Copyright © 2016 Alan A. A. Donovan & Brian W. Kernighan"
@@ -80,6 +82,10 @@ func Extract(url string) ([]string, error) {
 
 	req, err := http.NewRequest("GET", url, nil)
 
+	if err != nil {
+		return nil, fmt.Errorf("%d: %s (get error)", err, url)
+	}
+
 	var resp *http.Response
 	if err == nil {
 		req.Header.Set("User-Agent", userAgent)
@@ -87,17 +93,18 @@ func Extract(url string) ([]string, error) {
 	}
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%d: %s (do error)", err, url)
 	}
+
 	if resp.StatusCode != http.StatusOK {
 		resp.Body.Close()
-		return nil, fmt.Errorf("%d: %s",  resp.StatusCode, url)
+		return nil, fmt.Errorf("%d: %s (status code)",  resp.StatusCode, url)
 	}
 
 	doc, err := html.Parse(resp.Body)
 	resp.Body.Close()
 	if err != nil {
-		return nil, fmt.Errorf("%s: %s", err, url)
+		return nil, fmt.Errorf("%s: %s (parse error)", err, url)
 	}
 
 	var links []string
@@ -153,7 +160,7 @@ func crawl(nr int, parseURL linkRef, sourceURLs []string) []string {
 
 	pu, err := url.Parse(parseURL.link)
 	if err != nil {
-		m := fmt.Sprintf("%s for %s (%2d)\n", err, parseURL, nr)
+		m := fmt.Sprintf("%s for %s (%2d) (parse1)\n", err, parseURL, nr)
 		fails++
 		errorFile.WriteString(m)
 		return []string{}
@@ -164,7 +171,7 @@ func crawl(nr int, parseURL linkRef, sourceURLs []string) []string {
 		if parseURL.link != k {
 			su, e := url.Parse(k)
 			if e != nil {
-				m := fmt.Sprintf("%s for %s (%2d)\n",  err, k,nr)
+				m := fmt.Sprintf("%s for %s (%2d) (parse2)\n",  err, k,nr)
 				fails++
 				errorFile.WriteString(m)
 				return []string{}
@@ -213,7 +220,7 @@ func crawl(nr int, parseURL linkRef, sourceURLs []string) []string {
 
 	if *debugFlag {
 		fmt.Printf("%2d: --- Crawling %s\n", nr, parseURL)
-	} else {		
+	} else {
 		// fmt.Printf(".")
 		fmt.Printf("Pages crawled: %d\r",crawled)
 	}
@@ -229,7 +236,7 @@ func crawl(nr int, parseURL linkRef, sourceURLs []string) []string {
 	*/
 
 	if err != nil {
-		m := fmt.Sprintf("%s for %s (%2d)\n", err, parseURL,nr)
+		m := fmt.Sprintf("%s for %s (%2d) (extract)\n", err, parseURL,nr)
 		errors++
 		errorFile.WriteString(m)
 		return []string{}

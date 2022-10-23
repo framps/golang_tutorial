@@ -74,7 +74,7 @@ if (( ! $? )); then
   echo "</urlset>" >> $SITEMAP
 
   echo
-  echo "URLs found: $urlsFound"
+  echo "URLs added in sitemap: $urlsFound"
 else
   echo -e "\nSitemap generation aborted"
 fi

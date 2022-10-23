@@ -39,7 +39,7 @@ import (
 
 const outputName = "genSitemap"
 const lastSeenTimeout = time.Second * 1 // timeout for workers when there is no more work
-const httpClientTimeout = 15 * time.Second // http get timeout
+const httpClientTimeout = 30 * time.Second // http get timeout
 //const userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:105.0) Gecko/20100101 Firefox/105.0"
 
 const userAgent = "Mozilla/5.0 (X11; Linux x86_64; rv:106.0) Gecko/20100101 Firefox/106.0"
@@ -322,6 +322,7 @@ func main() {
 			fmt.Println("\nReceived an interrupt, stopping ...")
 			aborted=true
 			activeWorkers.Wait()
+			break
 		}
 	}()
 
@@ -387,7 +388,7 @@ func main() {
 		}
 	}()
 
-	fmt.Printf("Waiting for %d workers to finish ...\n", *workerFlag)
+	fmt.Printf("%d workers now crawling ...\n", *workerFlag)
 	activeWorkers.Wait()
 
 	if ! aborted {

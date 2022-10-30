@@ -27,24 +27,38 @@ SITEMAP="sitemap.xml"
 MYNAME="genSitemap"
 
 if [[ -z $1 ]]; then
-  echo "Missing Website URL"
+  echo "??? Missing Website URL"
   exit 1
 fi
 
-if [[ ! -f $MYNAME ]] || [[ $MYNAME.go -nt $MYNAME ]]; then
-   if ! which go >/dev/null ; then
-     echo "golang not installed"
-     exit 1
+if [[ ! $1 =~ ^http[s]?:* ]]; then
+	echo "??? Missing protocol (http or https)"
+	exit
+fi	
+
+if [[ ! -f $MYNAME ]] || [[ $MYNAME.go -nt $MYNAME ]]; then # check if source code was updated or does not exist
+   if ! which go >/dev/null ; then 							# no go environment detected
+     echo "--- Downloading executable $MYNAME from github ..."	# download code from github
+	 curl -q -o $MYNAME https://raw.githubusercontent.com/framps/golang_tutorial/master/$MYNAME/$MYNAME
+	 rc=$?
+	 if [[ $rc != 0 ]]; then
+		echo "??? Download of executable $MYNAME from git failed with curl rc $rc"
+		exit 1
+	 fi
+	 echo "--- Downloaded $MYNAME"
+	 chmod +x $MYNAME
    else
-     go build $MYNAME.go
+	 echo "--- Compiling $MYNAME"
+     go build $MYNAME.go									# otherwise build new executable
    fi
 fi
 
-./$MYNAME "$@"
+echo "--- Starting crawler"
+./$MYNAME "$@"												# start crawler
 
 if (( ! $? )); then
 
-  echo -e "\nGenerating $SITEMAP ..."
+  echo -e "\n--- Generating $SITEMAP ..."
 
   urlsFound=0
 
@@ -74,7 +88,7 @@ if (( ! $? )); then
   echo "</urlset>" >> $SITEMAP
 
   echo
-  echo "URLs added in sitemap: $urlsFound"
+  echo "--- URLs added in sitemap: $urlsFound"
 else
-  echo -e "\nSitemap generation aborted"
+  echo -e "\n--- Sitemap generation aborted"
 fi

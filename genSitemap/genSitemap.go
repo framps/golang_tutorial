@@ -393,7 +393,7 @@ func main() {
 
 	if ! aborted {
 		elapsed := time.Since(start)
-		fmt.Printf("\n%d pages crawled in %s on %s", crawled,elapsed,sourceURLs)
+		fmt.Printf("\nCrawling time for %s: %s", sourceURLs,elapsed)
 
 		fmt.Printf(`
 Pages found: %d

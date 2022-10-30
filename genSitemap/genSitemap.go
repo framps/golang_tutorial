@@ -40,9 +40,9 @@ import (
 const outputName = "genSitemap"
 const lastSeenTimeout = time.Second * 1 // timeout for workers when there is no more work
 const httpClientTimeout = 30 * time.Second // http get timeout
-//const userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:105.0) Gecko/20100101 Firefox/105.0"
+const userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:105.0) Gecko/20100101 Firefox/105.0"
 
-const userAgent = "Mozilla/5.0 (X11; Linux x86_64; rv:106.0) Gecko/20100101 Firefox/106.0"
+// const userAgent = "Mozilla/5.0 (X11; Linux x86_64; rv:106.0) Gecko/20100101 Firefox/106.0"
 
 const cpyRght1 = "Copyright © 2017,2022 framp at linux-tips-and-tricks dot de"
 const cpyRght2 = "Copyright © 2016 Alan A. A. Donovan & Brian W. Kernighan"
@@ -396,12 +396,14 @@ func main() {
 		fmt.Printf("\n%d pages crawled in %s on %s", crawled,elapsed,sourceURLs)
 
 		fmt.Printf(`
-Pages found: %d
-Pages skipped: %d
-Remote pages: %d
-Remote pages not found: %d
-Invalid URLs: %d`,
-			matches, skipped, remotes, notfound, errors)
+Pages found: %d (-> %s)
+Pages skipped: %d (-> %s)
+Remote pages: %d (-> %s)
+Remote pages not found: %d (-> %s)
+Invalid URLs: %d (-> %s)
+`,
+			matches, matchFile.Name(),skipped, skippedFile.Name(),remotes, remoteFile.Name(),
+			notfound, remoteFileNotfound.Name(),errors, errorFile.Name())
 		os.Exit(0)
 	} else {
 		os.Exit(1)

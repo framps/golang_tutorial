@@ -50,7 +50,7 @@ if [[ ! -f ${MYNAME}_${arch_ext} ]] || [[ $MYNAME.go -nt ${MYNAME}_${arch_ext} ]
 		exit 1
 	 fi
 	 echo "--- Downloaded $MYNAME"
-	 chmod +x $MYNAME
+	 chmod +x ${MYNAME}_${arch_ext}
    else
 	 echo "--- Compiling $MYNAME"
 	 OOS=linux GOARCH=arm GOARM=7 go build -o ${MYNAME}_arm $MYNAME.go

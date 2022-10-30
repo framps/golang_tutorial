@@ -40,17 +40,19 @@ arch=$(uname -m)
 arch_ext="arm"
 [[ $arch =~ ^x86* ]] && arch_ext="x86"
 
-if [[ ! -f ${MYNAME}_${arch_ext} ]] || [[ $MYNAME.go -nt ${MYNAME}_${arch_ext} ]]; then # check if source code was updated or does not exist
+MYEXECUTABLE="${MYNAME}_${arch_ext}"
+
+if [[ ! -f $MYEXECUTABLE ]] || [[ $MYNAME.go -nt $MYEXECUTABLE ]]; then # check if source code was updated or does not exist
    if ! which go >/dev/null ; then 							# no go environment detected
      echo "--- Downloading executable ${MYNAME}_${arch_ext} from github ..."	# download code from github
-	 curl -q -o ${MYNAME}_${arch_ext} https://raw.githubusercontent.com/framps/golang_tutorial/master/$MYNAME/${MYNAME}_${arch_ext}
+	 curl -q -o $MYEXECUTABLE https://raw.githubusercontent.com/framps/golang_tutorial/master/$MYNAME/$MYEXECUTABLE
 	 rc=$?
 	 if [[ $rc != 0 ]]; then
-		echo "??? Download of executable ${MYNAME}_${arch_ext} from git failed with curl rc $rc"
+		echo "??? Download of executable $MYEXECUTABLE from git failed with curl rc $rc"
 		exit 1
 	 fi
-	 echo "--- Downloaded ${MYNAME}_${arch_ext}"
-	 chmod +x ${MYNAME}_${arch_ext}
+	 echo "--- Downloaded $MYEXECUTABLE"
+	 chmod +x $MYEXECUTABLE
    else
 	 echo "--- Compiling $MYNAME"
 	 OOS=linux GOARCH=arm GOARM=7 go build -o ${MYNAME}_arm $MYNAME.go
@@ -59,7 +61,7 @@ if [[ ! -f ${MYNAME}_${arch_ext} ]] || [[ $MYNAME.go -nt ${MYNAME}_${arch_ext} ]
 fi
 
 echo "--- Starting crawler"
-./${MYNAME}_${arch_ext} "$@"												# start crawler
+./$MYEXECUTABLE "$@"												# start crawler
 
 if (( ! $? )); then
 

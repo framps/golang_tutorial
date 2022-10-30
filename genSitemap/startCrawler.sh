@@ -40,7 +40,7 @@ arch=$(uname -m)
 arch_ext="arm"
 [[ $arch =~ ^x86* ]] && arch_ext="x86"
 
-if [[ ! -f $MYNAME ]] || [[ $MYNAME.go -nt $MYNAME ]]; then # check if source code was updated or does not exist
+if [[ ! -f ${MYNAME}_${arch_ext} ]] || [[ $MYNAME.go -nt ${MYNAME}_${arch_ext} ]]; then # check if source code was updated or does not exist
    if ! which go >/dev/null ; then 							# no go environment detected
      echo "--- Downloading executable ${MYNAME}_${arch_ext} from github ..."	# download code from github
 	 curl -q -o ${MYNAME}_${arch_ext} https://raw.githubusercontent.com/framps/golang_tutorial/master/$MYNAME/${MYNAME}_${arch_ext}

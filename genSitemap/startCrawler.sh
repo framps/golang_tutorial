@@ -55,7 +55,7 @@ if [[ ! -f $MYEXECUTABLE ]] || [[ $MYNAME.go -nt $MYEXECUTABLE ]]; then # check 
 	 chmod +x $MYEXECUTABLE
    else
 	 echo "--- Compiling $MYNAME"
-	 OOS=linux GOARCH=arm GOARM=7 go build -o ${MYNAME}_arm $MYNAME.go
+	 OOS=linux GOARCH=arm GOARM=5 go build -o ${MYNAME}_arm $MYNAME.go
      go build -o ${MYNAME}_x86 $MYNAME.go									# otherwise build new executable
    fi
 fi

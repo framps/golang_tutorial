@@ -36,25 +36,30 @@ if [[ ! $1 =~ ^http[s]?:* ]]; then
 	exit
 fi	
 
+arch=$(uname -m)
+arch_ext="arm"
+[[ $arch =~ ^x86* ]] && arch_ext="x86"
+
 if [[ ! -f $MYNAME ]] || [[ $MYNAME.go -nt $MYNAME ]]; then # check if source code was updated or does not exist
    if ! which go >/dev/null ; then 							# no go environment detected
      echo "--- Downloading executable $MYNAME from github ..."	# download code from github
-	 curl -q -o $MYNAME https://raw.githubusercontent.com/framps/golang_tutorial/master/$MYNAME/$MYNAME
+	 curl -q -o $MYNAME https://raw.githubusercontent.com/framps/golang_tutorial/master/$MYNAME/${MYNAME}_${arch_ext}
 	 rc=$?
 	 if [[ $rc != 0 ]]; then
-		echo "??? Download of executable $MYNAME from git failed with curl rc $rc"
+		echo "??? Download of executable ${MYNAME}_${arch_ext} from git failed with curl rc $rc"
 		exit 1
 	 fi
 	 echo "--- Downloaded $MYNAME"
 	 chmod +x $MYNAME
    else
 	 echo "--- Compiling $MYNAME"
-     go build $MYNAME.go									# otherwise build new executable
+	 OOS=linux GOARCH=arm GOARM=7 go build -o ${MYNAME}_arm $MYNAME.go
+     go build -o ${MYNAME}_x86 $MYNAME.go									# otherwise build new executable
    fi
 fi
 
 echo "--- Starting crawler"
-./$MYNAME "$@"												# start crawler
+./${MYNAME}_${arch_ext} "$@"												# start crawler
 
 if (( ! $? )); then
 

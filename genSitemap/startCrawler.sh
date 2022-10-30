@@ -43,7 +43,7 @@ arch_ext="arm"
 if [[ ! -f $MYNAME ]] || [[ $MYNAME.go -nt $MYNAME ]]; then # check if source code was updated or does not exist
    if ! which go >/dev/null ; then 							# no go environment detected
      echo "--- Downloading executable $MYNAME from github ..."	# download code from github
-	 curl -q -o $MYNAME https://raw.githubusercontent.com/framps/golang_tutorial/master/$MYNAME/${MYNAME}_${arch_ext}
+	 curl -q -o ${MYNAME}_${arch_ext} https://raw.githubusercontent.com/framps/golang_tutorial/master/$MYNAME/${MYNAME}_${arch_ext}
 	 rc=$?
 	 if [[ $rc != 0 ]]; then
 		echo "??? Download of executable ${MYNAME}_${arch_ext} from git failed with curl rc $rc"

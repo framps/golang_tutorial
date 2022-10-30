@@ -49,7 +49,7 @@ if [[ ! -f ${MYNAME}_${arch_ext} ]] || [[ $MYNAME.go -nt ${MYNAME}_${arch_ext} ]
 		echo "??? Download of executable ${MYNAME}_${arch_ext} from git failed with curl rc $rc"
 		exit 1
 	 fi
-	 echo "--- Downloaded $MYNAME"
+	 echo "--- Downloaded ${MYNAME}_${arch_ext}"
 	 chmod +x ${MYNAME}_${arch_ext}
    else
 	 echo "--- Compiling $MYNAME"

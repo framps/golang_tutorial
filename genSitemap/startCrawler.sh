@@ -31,7 +31,7 @@ if [[ -z $1 ]]; then
   exit 1
 fi
 
-if [[ ! $1 =~ ^http[s]?:* ]]; then
+if [[ ! $1 =~ ^http[s]?:///* ]]; then
 	echo "??? Missing protocol (http or https)"
 	exit
 fi	
@@ -43,7 +43,7 @@ arch_ext="arm"
 MYEXECUTABLE="${MYNAME}_${arch_ext}"
 
 if [[ ! -f $MYEXECUTABLE ]] || [[ $MYNAME.go -nt $MYEXECUTABLE ]]; then # check if source code was updated or does not exist
-   if ! which go >/dev/null ; then 							# no go environment detected
+#   if ! which go >/dev/null ; then 							# no go environment detected
      echo "--- Downloading executable ${MYNAME}_${arch_ext} from github ..."	# download code from github
 	 curl -q -o $MYEXECUTABLE https://raw.githubusercontent.com/framps/golang_tutorial/master/$MYNAME/$MYEXECUTABLE
 	 rc=$?
@@ -58,7 +58,7 @@ if [[ ! -f $MYEXECUTABLE ]] || [[ $MYNAME.go -nt $MYEXECUTABLE ]]; then # check 
 	 OOS=linux GOARCH=arm GOARM=5 go build -o ${MYNAME}_arm $MYNAME.go
      go build -o ${MYNAME}_x86 $MYNAME.go									# otherwise build new executable
    fi
-fi
+#fi
 
 echo "--- Starting crawler"
 ./$MYEXECUTABLE "$@"												# start crawler

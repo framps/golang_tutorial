@@ -31,6 +31,12 @@ if [[ -z $1 ]]; then
   exit 1
 fi
 
+if [[ $1 == "-h" || $1 == "--help" ]]; then
+  echo "Invocation: $MYNAME.sh <url>"
+  echo "<url> has to have the correct protocol https:// or http://"
+  exit 1
+fi
+
 if [[ ! $1 =~ ^http[s]?:///* ]]; then
 	echo "??? Missing protocol (http or https)"
 	exit

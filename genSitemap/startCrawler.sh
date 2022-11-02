@@ -32,9 +32,21 @@ if [[ -z $1 ]]; then
 fi
 
 if [[ $1 == "-h" || $1 == "--help" ]]; then
-  echo "Invocation: $MYNAME.sh <url>"
+  echo "Invocation: $MYNAME.sh [-worker workerNumber] <url>"
+  echo "default workerNumber : 20"
   echo "<url> has to have the correct protocol https:// or http://"
   exit 1
+fi
+
+workerParm=""
+if [[ $1 == "-worker" ]]; then
+	shift
+	if [[ ! $1 =~ [0-9]+ ]]; then
+		echo "??? Invalid worker number"
+		exit 1
+	fi
+	workerParm="-worker $1"
+	shift
 fi
 
 if [[ ! $1 =~ ^http[s]?:///* ]]; then
@@ -75,7 +87,7 @@ if [[ ! -f $MYEXECUTABLE ]] || [[ $MYNAME.go -nt $MYEXECUTABLE ]]; then # check 
 fi
 
 echo "--- Starting crawler"
-./$MYEXECUTABLE "$@"												# start crawler
+./$MYEXECUTABLE $workerParm "$@"												# start crawler
 
 if (( ! $? )); then
 

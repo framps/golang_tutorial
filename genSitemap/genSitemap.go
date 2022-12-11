@@ -204,10 +204,11 @@ func crawl(nr int, parseURL linkRef, sourceURLs []string) []string {
 					return []string{}
 				} else {
 					m = fmt.Sprintf("%s (%2d)\n",  parseURL,nr)
-				remotes++
-				remoteFile.WriteString(m)
-				return []string{}
-			}
+			 	        remotes++
+				        remoteFile.WriteString(m)
+				        return []string{}
+			        }
+			    }
 			}
 			if !isValid(pu) {
 				m := fmt.Sprintf("%s (%2d)\n", parseURL, nr)
@@ -215,7 +216,6 @@ func crawl(nr int, parseURL linkRef, sourceURLs []string) []string {
 				skippedFile.WriteString(m)
 				return []string{}
 			}
-		}
 	}
 
 	if *debugFlag {

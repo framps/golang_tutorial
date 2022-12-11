@@ -17,4 +17,12 @@ All samples can be run on a Raspberry Pi or any other Linux system with one exce
 13. trafficLight - traffic light simulation of two trafficlights using channels and go routines. Can use real LEDs on a Raspberry using GPIOs and/or simulate LEDs on a monitor. See [here](https://www.linux-tips-and-tricks.de/raspiTrafficLight.mp4) a small video.
 14. types - Samples for the different types in go
 15. utf8 - Sample for utf8 handling in go
-16. genSitemap - Sample how to use go lightweight threading (goroutines). Actually it's the implementation of a remote website crawler which generates a sitemap.xml. Used by the author for his websites.
+16. genSitemap - Sample how to use go lightweight threading (goroutines). Actually it's a remote website crawler which generates a sitemap.xml.
+  Following information is crawled and reported. The number and URL of
+  1. valid remote links
+  2. invalid remote links
+  3. dead links
+  4. links valid for a sitemap
+  5. number of crawled pages
+
+  This information then is used to compile a sitemap. Used by the author for his websites.

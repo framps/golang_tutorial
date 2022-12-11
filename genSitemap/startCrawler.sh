@@ -2,7 +2,9 @@
 
 #######################################################################################################################
 #
-# Create a sitemap for a website
+#    Create a sitemap for a website
+#
+#	  In addition report number and URL of valid remote links, dead remote links, pages found and pages skipped
 #
 #######################################################################################################################
 #

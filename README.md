@@ -18,11 +18,12 @@ All samples can be run on a Raspberry Pi or any other Linux system with one exce
 14. types - Samples for the different types in go
 15. utf8 - Sample for utf8 handling in go
 16. genSitemap - Sample how to use go lightweight threading (goroutines). Actually it's a remote website crawler which generates a sitemap.xml.
-  Following information is crawled and reported. The number and URL of
-  1. valid remote links
-  2. invalid remote links
-  3. dead links
-  4. links valid for a sitemap
-  5. number of crawled pages
+
+    Following information is crawled and reported. The number and URL of
+    1. valid links to remote wabpages
+    2. invalid remote links to remote webpages
+    3. dead links 
+    4. valid links for a sitemap
+    5. number of crawled pages
 
   This information then is used to compile a sitemap. Used by the author for his websites.

@@ -2,7 +2,7 @@
 
 ## Abstract
 
-Two trafficlights TL1 and TL2 are simulated (see below their location in the crossing). A traffic light manager loads different traffic light programs in an endless loop, runs them for 15 seconds and switches to the next program. All programs are separated by a 5 second warning blink program which blinks the yellow LEDs. CTRL-C will terminate the endless loop. A video which shows the traffic light in action is available [here](https://www.linux-tips-and-tricks.de/trafficLight.mp4)
+Two trafficlights TL1 and TL2 are simulated (see below their location in the crossing). A traffic light manager loads different traffic light programs in an endless loop, runs them for 15 seconds and switches to the next program. All programs are separated by a 5 second warning blink program which blinks the yellow LEDs. CTRL-C will terminate the endless loop. A video which shows the traffic light in action is available [here](https://www.linux-tips-and-tricks.de/raspiTrafficLight.mp4).
 
 Either build the executable for Raspberry with `buildAndRun` or just execute `trafficlight_arm`.
 

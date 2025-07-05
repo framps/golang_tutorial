@@ -54,7 +54,7 @@ fi
 if [[ ! $1 =~ ^http[s]?:///* ]]; then
 	echo "??? Missing protocol (http or https)"
 	exit
-fi	
+fi
 
 arch=$(uname -m)
 arch_ext="arm"
@@ -65,7 +65,7 @@ MYEXECUTABLE="${MYNAME}_${arch_ext}"
 if [[ ! -f $MYEXECUTABLE ]] || [[ $MYNAME.go -nt $MYEXECUTABLE ]]; then # check if source code was updated or does not exist
    if ! which go >/dev/null ; then 							# no go environment detected
      echo "--- Downloading executable ${MYNAME}_${arch_ext} from github ..."	# download code from github
-	 curl -q -o $MYEXECUTABLE https://raw.githubusercontent.com/framps/golang_tutorial/master/$MYNAME/$MYEXECUTABLE
+	 curl -q -o $MYEXECUTABLE https://raw.githubusercontent.com/framps/golang_tutorial/main/$MYNAME/$MYEXECUTABLE
 	 rc=$?
 	 if [[ $rc != 0 ]]; then
 		echo "??? Download of executable $MYEXECUTABLE from git failed with curl rc $rc"
